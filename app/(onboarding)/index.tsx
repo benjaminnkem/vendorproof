@@ -7,7 +7,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-// Isometric hex grid decorative element
 function HexGrid() {
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
@@ -207,7 +206,7 @@ export default function WelcomeScreen() {
             />
             <Button
               label="I already have an account"
-              onPress={() => router.replace('/(tabs)')}
+              onPress={() => router.replace('/(auth)/login')}
               variant="ghost"
             />
           </View>

@@ -2,6 +2,7 @@ import { Button, Card, StepIndicator } from '@/components/onboarding/shared';
 import { useRegisterVendor } from '@/lib/hooks/use-onboarding';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { registrationSchema, type RegistrationFormData } from '@/lib/validators';
+import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
@@ -21,18 +22,50 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type Category = {
   id: RegistrationFormData['category'];
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 };
 
 const CATEGORIES: Category[] = [
-  { id: 'electronics', label: 'Electronics', icon: '📱' },
-  { id: 'fashion', label: 'Fashion', icon: '👗' },
-  { id: 'food', label: 'Food & Drinks', icon: '🍱' },
-  { id: 'logistics', label: 'Logistics', icon: '🚚' },
-  { id: 'beauty', label: 'Beauty', icon: '💄' },
-  { id: 'services', label: 'Services', icon: '🔧' },
-  { id: 'groceries', label: 'Groceries', icon: '🛒' },
-  { id: 'other', label: 'Other', icon: '📦' },
+  {
+    id: 'electronics',
+    label: 'Electronics',
+    icon: <Ionicons name="phone-portrait-outline" size={18} color="white" />,
+  },
+  {
+    id: 'fashion',
+    label: 'Fashion',
+    icon: <Ionicons name="shirt-outline" size={18} color="white" />,
+  },
+  {
+    id: 'food',
+    label: 'Food & Drinks',
+    icon: <Ionicons name="restaurant-outline" size={18} color="white" />,
+  },
+  {
+    id: 'logistics',
+    label: 'Logistics',
+    icon: <Ionicons name="train-outline" size={18} color="white" />,
+  },
+  {
+    id: 'beauty',
+    label: 'Beauty',
+    icon: <Ionicons name="sparkles-outline" size={18} color="white" />,
+  },
+  {
+    id: 'services',
+    label: 'Services',
+    icon: <Ionicons name="construct-outline" size={18} color="white" />,
+  },
+  {
+    id: 'groceries',
+    label: 'Groceries',
+    icon: <Ionicons name="cart-outline" size={18} color="white" />,
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    icon: <Ionicons name="cube-outline" size={18} color="white" />,
+  },
 ];
 
 export default function RegisterScreen() {
@@ -63,7 +96,7 @@ export default function RegisterScreen() {
 
   const onSubmit = async (values: RegistrationFormData) => {
     try {
-      const res = await registerVendor({
+      await registerVendor({
         fullName: values.fullName,
         phone: values.phone,
         businessName: values.businessName,
@@ -86,13 +119,12 @@ export default function RegisterScreen() {
           contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          {/* Header */}
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <View className="mb-8 mt-4 flex-row items-center justify-between">
               <TouchableOpacity
                 onPress={() => router.back()}
                 className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
-                <Text className="text-base text-white">←</Text>
+                <Ionicons name="chevron-back" size={22} color="#fff" />
               </TouchableOpacity>
               <StepIndicator total={4} current={0} />
               <View className="w-10" />
@@ -110,9 +142,7 @@ export default function RegisterScreen() {
             </Text>
           </Animated.View>
 
-          {/* Form */}
           <Animated.View style={{ opacity: fadeAnim }}>
-            {/* Full name */}
             <Controller
               control={control}
               name="fullName"
@@ -138,7 +168,6 @@ export default function RegisterScreen() {
               )}
             />
 
-            {/* Phone */}
             <Controller
               control={control}
               name="phone"
@@ -164,7 +193,6 @@ export default function RegisterScreen() {
               )}
             />
 
-            {/* Business name */}
             <Controller
               control={control}
               name="businessName"
@@ -192,7 +220,6 @@ export default function RegisterScreen() {
               )}
             />
 
-            {/* Category picker */}
             <Controller
               control={control}
               name="category"
@@ -213,7 +240,7 @@ export default function RegisterScreen() {
                               ? 'border-indigo-500 bg-indigo-900'
                               : 'border-canvas-border bg-canvas-surface'
                           }`}>
-                          <Text style={{ fontSize: 14 }}>{cat.icon}</Text>
+                          {cat.icon}
                           <Text
                             className={`text-sm font-medium ${
                               isSelected ? 'text-indigo-200' : 'text-canvas-muted'
@@ -233,10 +260,9 @@ export default function RegisterScreen() {
 
             <Button label="Continue →" onPress={handleSubmit(onSubmit)} loading={isPending} />
 
-            {/* Onboarding fee note */}
             <Card className="mt-4">
               <View className="flex-row items-start gap-3">
-                <Text className="text-lg">💳</Text>
+                <Ionicons name="card-outline" size={24} color="#60A5FA" />
                 <View className="flex-1">
                   <Text className="mb-1 text-sm font-medium text-white">₦500 verification fee</Text>
                   <Text className="text-xs leading-relaxed text-canvas-muted">

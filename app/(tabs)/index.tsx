@@ -1,14 +1,14 @@
-import { ScanCorners, SectionHead } from '@/components/dashboard/shared';
 import {
-  formatDate,
-  formatNaira,
   MOCK_SCORE_HISTORY,
   MOCK_TRANSACTIONS,
   MOCK_VENDOR,
   MOCK_WEEKLY_EARNINGS,
   TIER_CONFIG,
+  formatDate,
+  formatNaira,
 } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
@@ -24,251 +24,181 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
-const CHART_WIDTH = width - 40;
+const CHART_W = width - 40;
 
-function PulseDot({ color = '#20C997' }: { color?: string }) {
+function PulseDot({ color }: { color: string }) {
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(0.6);
+  const opacity = useSharedValue(0.5);
 
   useEffect(() => {
     scale.value = withRepeat(
       withSequence(
-        withTiming(1.6, { duration: 900, easing: Easing.out(Easing.ease) }),
-        withTiming(1, { duration: 900 })
+        withTiming(1.8, { duration: 800, easing: Easing.out(Easing.ease) }),
+        withTiming(1, { duration: 800 })
       ),
       -1
     );
     opacity.value = withRepeat(
-      withSequence(withTiming(0.1, { duration: 900 }), withTiming(0.6, { duration: 900 })),
+      withSequence(withTiming(0.05, { duration: 800 }), withTiming(0.5, { duration: 800 })),
       -1
     );
   }, []);
 
-  const outerStyle = useAnimatedStyle(() => ({
+  const ringStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: color,
-    position: 'absolute',
   }));
 
   return (
-    <View style={{ width: 12, height: 12, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View style={outerStyle} />
-      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: color, zIndex: 1 }} />
+    <View className="h-3 w-3 items-center justify-center">
+      <Animated.View
+        style={[ringStyle, { backgroundColor: color }]}
+        className="absolute h-3 w-3 rounded-full"
+      />
+      <View className="z-10 h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
     </View>
   );
 }
 
 function TrustScoreCard() {
-  const vendor = MOCK_VENDOR;
-  const tierConf = TIER_CONFIG[vendor.tier];
-  const progress = useSharedValue(0);
+  const v = MOCK_VENDOR;
+  const tc = TIER_CONFIG[v.tier];
 
+  const barWidth = useSharedValue(0);
   useEffect(() => {
-    progress.value = withTiming(vendor.trustScore / 100, {
+    barWidth.value = withTiming(v.trustScore / 100, {
       duration: 1400,
       easing: Easing.out(Easing.cubic),
     });
   }, []);
 
+  const bars = [
+    { label: 'Document', val: v.documentScore, color: '#4361EE' },
+    { label: 'Biometric', val: v.biometricScore, color: '#20C997' },
+    { label: 'Behavioral', val: v.behavioralScore, color: tc.color },
+  ];
+
   return (
-    <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
-      <View
-        style={{
-          backgroundColor: '#0D1120',
-          borderWidth: 1,
-          borderColor: '#1E2535',
-          borderRadius: 20,
-          padding: 20,
-          marginBottom: 16,
-          overflow: 'hidden',
-        }}>
+    <Animated.View entering={FadeInDown.delay(80).springify()} className="mb-4">
+      <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface p-5">
         <View
-          style={{
-            position: 'absolute',
-            top: -40,
-            right: -40,
-            width: 180,
-            height: 180,
-            borderRadius: 90,
-            backgroundColor: tierConf.color + '18',
-          }}
+          className="absolute -right-10 -top-10 h-44 w-44 rounded-full opacity-10"
+          style={{ backgroundColor: tc.color }}
         />
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-          }}>
+        <View className="flex-row items-start justify-between">
           <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <PulseDot color={tierConf.color} />
-              <Text
-                style={{
-                  color: '#8892A4',
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  textTransform: 'uppercase',
-                }}>
+            <View className="mb-2 flex-row items-center gap-2">
+              <PulseDot color={tc.color} />
+              <Text className="text-xs uppercase tracking-widest text-canvas-muted">
                 Trust Score
               </Text>
             </View>
-            <Text style={{ color: '#fff', fontSize: 64, fontWeight: '300', lineHeight: 68 }}>
-              {vendor.trustScore}
+            <Text className="font-light text-white" style={{ fontSize: 68, lineHeight: 72 }}>
+              {v.trustScore}
             </Text>
-            <Text style={{ color: '#8892A4', fontSize: 13, marginTop: 2 }}>/ 100</Text>
+            <Text className="-mt-1 text-sm text-canvas-muted">/ 100</Text>
 
             <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-                marginTop: 12,
-                backgroundColor: tierConf.bg,
-                borderWidth: 1,
-                borderColor: tierConf.color + '50',
-                borderRadius: 20,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                alignSelf: 'flex-start',
-              }}>
-              <MaterialCommunityIcons name="shield-check" size={12} color={tierConf.color} />
-              <Text style={{ color: tierConf.color, fontSize: 11, fontWeight: '600' }}>
-                {tierConf.label} Tier
+              className="mt-3 flex-row items-center gap-1.5 self-start rounded-full border px-2.5 py-1"
+              style={{ backgroundColor: tc.bg, borderColor: tc.color + '50' }}>
+              <MaterialCommunityIcons name="shield-check" size={11} color={tc.color} />
+              <Text className="text-xs font-semibold" style={{ color: tc.color }}>
+                {tc.label} Tier
               </Text>
             </View>
           </View>
 
-          {/* Right — score bars */}
-          <View style={{ gap: 10, minWidth: 130 }}>
-            {[
-              { label: 'Document', value: vendor.documentScore, color: '#4361EE' },
-              { label: 'Biometric', value: vendor.biometricScore, color: '#20C997' },
-              { label: 'Behavioral', value: vendor.behavioralScore, color: tierConf.color },
-            ].map(({ label, value, color }) => (
+          <View className="w-36 gap-3">
+            {bars.map(({ label, val, color }) => (
               <View key={label}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginBottom: 5,
-                  }}>
-                  <Text style={{ color: '#8892A4', fontSize: 11 }}>{label}</Text>
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '500' }}>{value}</Text>
+                <View className="mb-1.5 flex-row justify-between">
+                  <Text className="text-xs text-canvas-muted">{label}</Text>
+                  <Text className="text-xs font-medium text-white">{val}</Text>
                 </View>
-                <View
-                  style={{
-                    height: 3,
-                    backgroundColor: '#1E2535',
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                  }}>
-                  <Animated.View
-                    style={{
-                      height: '100%',
-                      width: `${value}%`,
-                      backgroundColor: color,
-                      borderRadius: 4,
-                    }}
+                <View className="h-0.5 overflow-hidden rounded-full bg-canvas-border">
+                  <View
+                    className="h-full rounded-full"
+                    style={{ width: `${val}%`, backgroundColor: color }}
                   />
                 </View>
               </View>
             ))}
 
-            <View style={{ marginTop: 4 }}>
-              <Text style={{ color: '#8892A4', fontSize: 11, marginBottom: 3 }}>To Platinum</Text>
-              <View
-                style={{
-                  height: 3,
-                  backgroundColor: '#1E2535',
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                }}>
+            <View className="mt-1">
+              <Text className="mb-1.5 text-xs text-canvas-muted">To Platinum</Text>
+              <View className="h-0.5 overflow-hidden rounded-full bg-canvas-border">
                 <View
-                  style={{
-                    height: '100%',
-                    width: `${(vendor.trustScore / 95) * 100}%`,
-                    backgroundColor: '#20C99770',
-                    borderRadius: 4,
-                  }}
+                  className="h-full rounded-full"
+                  style={{ width: `${(v.trustScore / 95) * 100}%`, backgroundColor: '#20C99760' }}
                 />
               </View>
-              <Text style={{ color: '#8892A450', fontSize: 10, marginTop: 3 }}>
-                {95 - vendor.trustScore} pts away
+              <Text className="mt-1 text-xs" style={{ color: '#8892A440' }}>
+                {95 - v.trustScore} pts away
               </Text>
             </View>
           </View>
         </View>
 
-        <ScanCorners color={tierConf.color + '60'} size={14} />
+        {[
+          'absolute top-0 left-0 w-4 h-4 border-t border-l border-indigo-500/30',
+          'absolute top-0 right-0 w-4 h-4 border-t border-r border-indigo-500/30',
+          'absolute bottom-0 left-0 w-4 h-4 border-b border-l border-indigo-500/30',
+          'absolute bottom-0 right-0 w-4 h-4 border-b border-r border-indigo-500/30',
+        ].map((cls, i) => (
+          <View key={i} className={cls} />
+        ))}
       </View>
     </Animated.View>
   );
 }
 
-function StatsRow() {
+function StatsGrid() {
   const stats = [
     {
-      label: 'Total earned',
-      value: formatNaira(MOCK_VENDOR.totalEarnings),
-      icon: <Ionicons name="cash-outline" size={16} color="#20C997" />,
+      label: 'Earned',
+      value: '₦1.48M',
+      icon: <Ionicons name="cash-outline" size={15} color="#20C997" />,
       color: '#20C997',
-      delay: 150,
+      delay: 160,
     },
     {
-      label: 'Transactions',
-      value: MOCK_VENDOR.totalTransactions.toString(),
-      icon: <Ionicons name="swap-vertical-outline" size={16} color="#4361EE" />,
+      label: 'Orders',
+      value: '142',
+      icon: <Ionicons name="swap-vertical-outline" size={15} color="#4361EE" />,
       color: '#4361EE',
       delay: 220,
     },
     {
-      label: 'Avg order',
-      value: formatNaira(MOCK_VENDOR.avgOrderValue),
-      icon: <Ionicons name="trending-up-outline" size={16} color="#F0A500" />,
+      label: 'Avg',
+      value: '₦10.4k',
+      icon: <Ionicons name="trending-up-outline" size={15} color="#F0A500" />,
       color: '#F0A500',
-      delay: 290,
+      delay: 280,
     },
     {
-      label: 'Dispute rate',
-      value: `${MOCK_VENDOR.disputeRate}%`,
-      icon: <Feather name="shield" size={16} color="#B4B2A9" />,
+      label: 'Disputes',
+      value: '0.7%',
+      icon: <Feather name="shield" size={15} color="#B4B2A9" />,
       color: '#B4B2A9',
-      delay: 360,
+      delay: 340,
     },
   ];
 
   return (
-    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
+    <View className="mb-5 flex-row gap-2">
       {stats.map(({ label, value, icon, color, delay }) => (
-        <Animated.View
-          key={label}
-          entering={FadeInDown.delay(delay).duration(400)}
-          style={{ flex: 1 }}>
-          <View
-            style={{
-              backgroundColor: '#0D1120',
-              borderWidth: 1,
-              borderColor: '#1E2535',
-              borderRadius: 14,
-              padding: 12,
-            }}>
-            <View style={{ marginBottom: 8 }}>{icon}</View>
+        <Animated.View entering={FadeInDown.delay(delay)} key={label} className="flex-1">
+          <View className="rounded-2xl border border-canvas-border bg-canvas-surface p-3">
+            <View className="mb-2">{icon}</View>
             <Text
-              style={{
-                color: '#8892A4',
-                fontSize: 9,
-                textTransform: 'uppercase',
-                letterSpacing: 0.8,
-                marginBottom: 4,
-              }}>
+              className="mb-1 uppercase tracking-wider text-canvas-muted"
+              style={{ fontSize: 9 }}>
               {label}
             </Text>
-            <Text style={{ color, fontSize: 13, fontWeight: '600', lineHeight: 16 }}>{value}</Text>
+            <Text className="text-sm font-semibold" style={{ color }}>
+              {value}
+            </Text>
           </View>
         </Animated.View>
       ))}
@@ -276,161 +206,132 @@ function StatsRow() {
   );
 }
 
+function SectionHead({
+  title,
+  action,
+  onAction,
+}: {
+  title: string;
+  action?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <View className="mb-3 flex-row items-center justify-between">
+      <Text className="text-sm font-semibold text-white">{title}</Text>
+      {action && (
+        <TouchableOpacity onPress={onAction}>
+          <Text className="text-xs text-indigo-400">{action}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+function ChartCard({ children }: { children: React.ReactNode }) {
+  return (
+    <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface pb-1 pt-4">
+      {children}
+    </View>
+  );
+}
+
+const CHART_CFG_BASE = {
+  backgroundGradientFrom: '#0D1120',
+  backgroundGradientTo: '#0D1120',
+  decimalPlaces: 0,
+  labelColor: () => '#8892A4',
+  propsForBackgroundLines: { stroke: '#1E2535', strokeWidth: 0.5 },
+};
+
 function EarningsChart() {
   return (
-    <Animated.View entering={FadeInDown.delay(300).duration(500)} style={{ marginBottom: 20 }}>
-      <SectionHead title="Weekly earnings" action="This week" />
-      <View
-        style={{
-          backgroundColor: '#0D1120',
-          borderWidth: 1,
-          borderColor: '#1E2535',
-          borderRadius: 20,
-          paddingTop: 16,
-          paddingBottom: 4,
-          overflow: 'hidden',
-        }}>
+    <Animated.View entering={FadeInDown.delay(300)} className="mb-5">
+      <SectionHead title="Weekly earnings" action="₦ k" />
+      <ChartCard>
         <BarChart
           data={{
             labels: MOCK_WEEKLY_EARNINGS.map((d) => d.day),
             datasets: [{ data: MOCK_WEEKLY_EARNINGS.map((d) => d.amount / 1000) }],
           }}
-          width={CHART_WIDTH - 32}
-          height={160}
-          yAxisLabel="₦"
+          width={CHART_W - 24}
+          height={155}
+          yAxisLabel=""
           yAxisSuffix="k"
           chartConfig={{
-            backgroundGradientFrom: '#0D1120',
-            backgroundGradientTo: '#0D1120',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(67, 97, 238, ${opacity})`,
-            labelColor: () => '#8892A4',
-            style: { borderRadius: 16 },
-            barPercentage: 0.55,
+            ...CHART_CFG_BASE,
+            color: (o = 1) => `rgba(67,97,238,${o})`,
             fillShadowGradient: '#4361EE',
             fillShadowGradientOpacity: 1,
-            propsForBackgroundLines: { stroke: '#1E2535', strokeWidth: 0.5 },
+            barPercentage: 0.52,
           }}
-          style={{ marginLeft: -16 }}
+          style={{ marginLeft: -20 }}
           showBarTops={false}
           fromZero
           withInnerLines
         />
-      </View>
+      </ChartCard>
     </Animated.View>
   );
 }
 
-function ScoreHistoryChart() {
+function ScoreChart() {
   return (
-    <Animated.View entering={FadeInDown.delay(400).duration(500)} style={{ marginBottom: 20 }}>
-      <SectionHead title="Score history" action="6 months" />
-      <View
-        style={{
-          backgroundColor: '#0D1120',
-          borderWidth: 1,
-          borderColor: '#1E2535',
-          borderRadius: 20,
-          paddingTop: 16,
-          paddingBottom: 4,
-          overflow: 'hidden',
-        }}>
+    <Animated.View entering={FadeInDown.delay(380)} className="mb-5">
+      <SectionHead title="Score trajectory" />
+      <ChartCard>
         <LineChart
           data={{
             labels: MOCK_SCORE_HISTORY.map((d) => d.date),
             datasets: [{ data: MOCK_SCORE_HISTORY.map((d) => d.score) }],
           }}
-          width={CHART_WIDTH - 24}
-          height={160}
+          width={CHART_W - 16}
+          height={155}
           chartConfig={{
-            backgroundGradientFrom: '#0D1120',
-            backgroundGradientTo: '#0D1120',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(32, 201, 151, ${opacity})`,
-            labelColor: () => '#8892A4',
+            ...CHART_CFG_BASE,
+            color: (o = 1) => `rgba(32,201,151,${o})`,
             propsForDots: { r: '4', strokeWidth: '2', stroke: '#20C997' },
-            propsForBackgroundLines: { stroke: '#1E2535', strokeWidth: 0.5 },
           }}
           bezier
-          style={{ marginLeft: -8 }}
+          style={{ marginLeft: -12 }}
           withInnerLines
           withShadow={false}
         />
-      </View>
+      </ChartCard>
     </Animated.View>
   );
 }
 
-function RecentTransactions({ onSeeAll }: { onSeeAll: () => void }) {
+function RecentTxns({ onSeeAll }: { onSeeAll: () => void }) {
+  const STATUS_COLOR = { success: '#20C997', pending: '#F0A500', failed: '#E63946' } as const;
   const recent = MOCK_TRANSACTIONS.slice(0, 4);
 
   return (
-    <Animated.View entering={FadeInDown.delay(500).duration(500)} style={{ marginBottom: 20 }}>
+    <Animated.View entering={FadeInDown.delay(460)} className="mb-5">
       <SectionHead title="Recent activity" action="See all" onAction={onSeeAll} />
-      <View
-        style={{
-          backgroundColor: '#0D1120',
-          borderWidth: 1,
-          borderColor: '#1E2535',
-          borderRadius: 20,
-          overflow: 'hidden',
-        }}>
+      <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface">
         {recent.map((txn, i) => {
-          const statusColors = {
-            success: '#20C997',
-            pending: '#F0A500',
-            failed: '#E63946',
-          };
-          const color = statusColors[txn.status];
-
+          const color = STATUS_COLOR[txn.status];
           return (
             <View
               key={txn.id}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                borderBottomWidth: i < recent.length - 1 ? 1 : 0,
-                borderBottomColor: '#1E2535',
-              }}>
-              {/* Avatar initial */}
-              <View
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 19,
-                  backgroundColor: '#1a1f3a',
-                  borderWidth: 1,
-                  borderColor: '#2D3FCC30',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 12,
-                }}>
-                <Text style={{ color: '#7B8FF7', fontSize: 14, fontWeight: '500' }}>
+              className={`flex-row items-center px-4 py-3.5 ${i < recent.length - 1 ? 'border-b border-canvas-border' : ''}`}>
+              <View className="mr-3 h-9 w-9 items-center justify-center rounded-full border border-indigo-500/20 bg-indigo-900">
+                <Text className="text-sm font-semibold text-indigo-300">
                   {txn.buyerName.charAt(0)}
                 </Text>
               </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '500', marginBottom: 2 }}>
-                  {txn.buyerName}
-                </Text>
-                <Text style={{ color: '#8892A4', fontSize: 11 }}>{formatDate(txn.date)}</Text>
+              <View className="flex-1">
+                <Text className="mb-0.5 text-sm font-medium text-white">{txn.buyerName}</Text>
+                <Text className="text-xs text-canvas-muted">{formatDate(txn.date)}</Text>
               </View>
 
-              <View style={{ alignItems: 'flex-end', gap: 4 }}>
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
-                  +{formatNaira(txn.amount)}
-                </Text>
-                <View
-                  style={{
-                    backgroundColor: color + '18',
-                    borderRadius: 8,
-                    paddingHorizontal: 7,
-                    paddingVertical: 2,
-                  }}>
-                  <Text style={{ color, fontSize: 10, fontWeight: '500' }}>{txn.status}</Text>
+              <View className="items-end gap-1">
+                <Text className="text-sm font-semibold text-white">+{formatNaira(txn.amount)}</Text>
+                <View className="rounded-lg px-2 py-0.5" style={{ backgroundColor: color + '18' }}>
+                  <Text className="text-xs font-medium capitalize" style={{ color }}>
+                    {txn.status}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -441,83 +342,43 @@ function RecentTransactions({ onSeeAll }: { onSeeAll: () => void }) {
   );
 }
 
-export default function DashboardScreen() {
-  const { useRouter } = require('expo-router');
+export default function HomeScreen() {
   const router = useRouter();
-  const vendor = MOCK_VENDOR;
+  const v = MOCK_VENDOR;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#080B12' }}>
+    <SafeAreaView className="flex-1 bg-canvas">
       <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}>
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}>
         <Animated.View
-          entering={FadeInDown.delay(0).duration(400)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 16,
-            marginBottom: 20,
-          }}>
+          entering={FadeInDown.delay(0)}
+          className="mb-5 flex-row items-center justify-between pt-4">
           <View>
-            <Text style={{ color: '#8892A4', fontSize: 12, marginBottom: 3 }}>Good morning 👋</Text>
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: '600' }}>
-              {vendor.fullName.split(' ')[0]}
-            </Text>
+            <Text className="mb-0.5 text-xs text-canvas-muted">Good morning 👋</Text>
+            <Text className="text-xl font-semibold text-white">{v.fullName.split(' ')[0]}</Text>
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <TouchableOpacity
-              style={{
-                width: 40,
-                height: 40,
-                backgroundColor: '#0D1120',
-                borderWidth: 1,
-                borderColor: '#1E2535',
-                borderRadius: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
+          <View className="flex-row items-center gap-2.5">
+            <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
               <Ionicons name="notifications-outline" size={18} color="#8892A4" />
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 9,
-                  right: 9,
-                  width: 7,
-                  height: 7,
-                  borderRadius: 4,
-                  backgroundColor: '#4361EE',
-                  borderWidth: 1.5,
-                  borderColor: '#080B12',
-                }}
-              />
+              <View className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-canvas bg-indigo-500" />
             </TouchableOpacity>
 
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: '#1a1f3a',
-                borderWidth: 2,
-                borderColor: '#4361EE',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Text style={{ color: '#7B8FF7', fontSize: 16, fontWeight: '600' }}>
-                {vendor.fullName.charAt(0)}
+            <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-indigo-900">
+              <Text className="text-base font-semibold text-indigo-200">
+                {v.fullName.charAt(0)}
               </Text>
             </View>
           </View>
         </Animated.View>
 
         <TrustScoreCard />
-        <StatsRow />
+        <StatsGrid />
         <EarningsChart />
-        <ScoreHistoryChart />
-        <RecentTransactions onSeeAll={() => router.push('/(tabs)/transactions')} />
+        <ScoreChart />
+        <RecentTxns onSeeAll={() => router.push('/(tabs)/transactions')} />
       </ScrollView>
     </SafeAreaView>
   );

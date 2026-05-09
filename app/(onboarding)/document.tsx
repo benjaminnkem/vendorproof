@@ -2,6 +2,7 @@ import { Button, Card, StepIndicator } from '@/components/onboarding/shared';
 import { useVerifyDocument } from '@/lib/hooks/use-onboarding';
 import type { DocumentType } from '@/lib/store/onboarding.store';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -13,7 +14,7 @@ type DocOption = {
   id: DocumentType;
   label: string;
   sublabel: string;
-  icon: string;
+  icon: React.ReactNode;
 };
 
 const DOC_OPTIONS: DocOption[] = [
@@ -21,19 +22,19 @@ const DOC_OPTIONS: DocOption[] = [
     id: 'nin',
     label: 'NIN Slip',
     sublabel: 'National Identification Number',
-    icon: '🪪',
+    icon: <Ionicons name="id-card-outline" size={24} color="#fff" />,
   },
   {
     id: 'cac',
     label: 'CAC Certificate',
     sublabel: 'Business registration document',
-    icon: '📋',
+    icon: <Ionicons name="document-text-outline" size={24} color="#fff" />,
   },
   {
     id: 'utility',
     label: 'Utility Bill',
     sublabel: 'Not older than 3 months',
-    icon: '🧾',
+    icon: <Ionicons name="receipt-outline" size={24} color="#fff" />,
   },
 ];
 
@@ -89,7 +90,6 @@ export default function DocumentScreen() {
           });
 
     if (!result.canceled && result.assets[0]) {
-      // Compress before upload
       const compressed = await ImageManipulator.manipulateAsync(
         result.assets[0].uri,
         [{ resize: { width: 1200 } }],
@@ -105,7 +105,7 @@ export default function DocumentScreen() {
 
     try {
       const res = await verifyDocument({
-        vendorId: 'vnd_demo', // replace with store.vendorId after register
+        vendorId: 'vnd_demo',
         documentType: selectedType,
         documentUri: imageUri,
       });
@@ -118,7 +118,6 @@ export default function DocumentScreen() {
 
       updateData({ documentType: selectedType, documentUri: imageUri });
 
-      // Animate success card in
       Animated.spring(successAnim, {
         toValue: 1,
         tension: 60,
@@ -135,13 +134,12 @@ export default function DocumentScreen() {
   return (
     <SafeAreaView className="flex-1 bg-canvas">
       <View className="flex-1 px-6">
-        {/* Header */}
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
           <View className="mb-8 mt-4 flex-row items-center justify-between">
             <TouchableOpacity
               onPress={() => router.back()}
               className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
-              <Text className="text-base text-white">←</Text>
+              <Ionicons name="chevron-back" size={22} color="#fff" />
             </TouchableOpacity>
             <StepIndicator total={4} current={1} />
             <View className="w-10" />
@@ -159,7 +157,6 @@ export default function DocumentScreen() {
           </Text>
         </Animated.View>
 
-        {/* Doc type selector */}
         <Animated.View style={{ opacity: fadeAnim }} className="mb-6">
           <Text className="mb-3 text-xs uppercase tracking-widest text-canvas-muted">
             Document type
@@ -180,7 +177,7 @@ export default function DocumentScreen() {
                       ? 'border-indigo-500 bg-indigo-900'
                       : 'border-canvas-border bg-canvas-surface'
                   }`}>
-                  <Text style={{ fontSize: 20 }}>{opt.icon}</Text>
+                  {opt.icon}
                   <View className="flex-1">
                     <Text
                       className={`text-sm font-medium ${
@@ -192,7 +189,7 @@ export default function DocumentScreen() {
                   </View>
                   {isSelected && (
                     <View className="h-5 w-5 items-center justify-center rounded-full bg-indigo-500">
-                      <Text className="text-xs text-white">✓</Text>
+                      <Ionicons name="checkmark" size={14} color="#fff" />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -201,7 +198,6 @@ export default function DocumentScreen() {
           </View>
         </Animated.View>
 
-        {/* Upload area */}
         <Animated.View style={{ opacity: fadeAnim }} className="mb-4">
           {imageUri ? (
             <View className="relative">
@@ -210,7 +206,6 @@ export default function DocumentScreen() {
                 className="h-44 w-full rounded-2xl"
                 resizeMode="cover"
               />
-              {/* Scan line overlay */}
               <View className="absolute inset-0 overflow-hidden rounded-2xl border border-indigo-500">
                 <View className="absolute left-2 top-2 h-5 w-5 border-l-2 border-t-2 border-teal-400" />
                 <View className="absolute right-2 top-2 h-5 w-5 border-r-2 border-t-2 border-teal-400" />
@@ -223,13 +218,13 @@ export default function DocumentScreen() {
                   setVerifyResult(null);
                 }}
                 className="absolute right-3 top-3 h-8 w-8 items-center justify-center rounded-full border border-canvas-border bg-canvas">
-                <Text className="text-xs text-canvas-muted">✕</Text>
+                <Ionicons name="close" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
           ) : (
             <View className="items-center gap-3 rounded-2xl border-2 border-dashed border-canvas-border p-8">
               <View className="h-14 w-14 items-center justify-center rounded-2xl bg-canvas-surface">
-                <Text style={{ fontSize: 24 }}>📄</Text>
+                <Ionicons name="document-outline" size={32} color="#fff" />
               </View>
               <Text className="text-sm font-medium text-white">Upload document</Text>
               <Text className="text-center text-xs text-canvas-muted">
@@ -239,13 +234,13 @@ export default function DocumentScreen() {
                 <TouchableOpacity
                   onPress={() => pickImage('camera')}
                   className="flex-row items-center gap-2 rounded-full border border-indigo-500 bg-indigo-900 px-4 py-2.5">
-                  <Text style={{ fontSize: 14 }}>📷</Text>
+                  <Ionicons name="camera-outline" size={18} color="#fff" />
                   <Text className="text-sm font-medium text-indigo-200">Camera</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => pickImage('gallery')}
                   className="flex-row items-center gap-2 rounded-full border border-canvas-border bg-canvas-surface px-4 py-2.5">
-                  <Text style={{ fontSize: 14 }}>🖼️</Text>
+                  <Ionicons name="images-outline" size={18} color="#fff" />
                   <Text className="text-sm font-medium text-canvas-muted">Gallery</Text>
                 </TouchableOpacity>
               </View>
@@ -253,7 +248,6 @@ export default function DocumentScreen() {
           )}
         </Animated.View>
 
-        {/* AI result card */}
         {verifyResult && (
           <Animated.View
             style={{
@@ -266,7 +260,7 @@ export default function DocumentScreen() {
             <Card className="border-teal-700">
               <View className="mb-3 flex-row items-center gap-3">
                 <View className="h-8 w-8 items-center justify-center rounded-full bg-teal-900">
-                  <Text className="text-sm text-teal-400">✓</Text>
+                  <Ionicons name="checkmark-circle" size={20} color="#14b8a6" />
                 </View>
                 <Text className="text-sm font-medium text-teal-400">Document verified</Text>
                 <View className="ml-auto rounded-full border border-teal-700 bg-teal-900 px-2 py-0.5">
@@ -289,7 +283,6 @@ export default function DocumentScreen() {
 
         <View className="flex-1" />
 
-        {/* CTA */}
         <View className="gap-3 pb-6">
           {!verifyResult ? (
             <Button
