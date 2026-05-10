@@ -1,4 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
+import { ApiResponse } from '../config/api';
+import { publicApi } from '../config/axios';
 import type { AuthVendor } from '../store/auth.store';
 
 const KEYS = {
@@ -9,10 +11,10 @@ const KEYS = {
 } as const;
 
 export const storage = {
-  async setTokens(access: string, refresh: string) {
+  async setTokens(access: string, refresh?: string) {
     await Promise.all([
       SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, access),
-      SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refresh),
+      refresh && SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refresh),
     ]);
   },
 
@@ -50,27 +52,16 @@ export const storage = {
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface SendOTPPayload {
-  phone: string;
+  phoneNumber: string;
 }
 export interface SendOTPResponse {
   sessionId: string;
   expiresIn: number;
 }
 
-export async function sendOTP(payload: SendOTPPayload): Promise<SendOTPResponse> {
-  await delay(1100);
-
-  if (payload.phone === '00000000000') {
-    throw new Error('No vendor found with this phone number. Please complete registration first.');
-  }
-
-  // const { data } = await apiClient.post('/auth/send-otp', payload);
-  // return data;
-
-  return {
-    sessionId: `sess_${Math.random().toString(36).slice(2, 10)}`,
-    expiresIn: 60,
-  };
+export async function signIn(payload: SendOTPPayload) {
+  const { data } = await publicApi.post<ApiResponse>('/auth/signin', payload);
+  return data.data;
 }
 
 export interface VerifyOTPPayload {

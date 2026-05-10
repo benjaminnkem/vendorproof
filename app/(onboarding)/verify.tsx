@@ -1,9 +1,9 @@
+import { Button } from '@/components/onboarding/shared';
 import { useVerifyOtp } from '@/lib/hooks/use-onboarding';
 import { useSignIn } from '@/lib/hooks/user-auth-mutations';
-import { useAuthStore } from '@/lib/store/auth.store';
+import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as LocalAuthentication from 'expo-local-authentication';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -75,20 +75,13 @@ function OTPBox({
       style={boxStyle}
       className="h-14 w-12 items-center justify-center rounded-2xl border-2 bg-canvas-surface">
       {focused && !digit ? (
-        <Animated.View
-          style={{
-            width: 1.5,
-            height: 20,
-            backgroundColor: '#4361EE',
-          }}
-        />
+        <Animated.View style={{ width: 1.5, height: 20, backgroundColor: '#4361EE' }} />
       ) : (
         <Text
           className={`text-xl font-semibold ${hasError ? 'text-alert-500' : filled ? 'text-teal-400' : 'text-white'}`}>
           {digit}
         </Text>
       )}
-
       {filled && !hasError && (
         <View className="absolute bottom-1.5 h-0.5 w-4 rounded-full bg-teal-500" />
       )}
@@ -142,29 +135,9 @@ function CountdownRing({ seconds, total }: { seconds: number; total: number }) {
   );
 }
 
-async function promptBiometric(): Promise<boolean> {
-  try {
-    const compatible = await LocalAuthentication.hasHardwareAsync();
-    const enrolled = await LocalAuthentication.isEnrolledAsync();
-    if (!compatible || !enrolled) return false;
-
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Confirm it's you",
-      fallbackLabel: 'Use OTP instead',
-      disableDeviceFallback: false,
-    });
-
-    return result.success;
-  } catch {
-    return false;
-  }
-}
-
 export default function VerifyScreen() {
   const router = useRouter();
-  const { phone } = useLocalSearchParams<{ phone: string }>();
 
-  const { setTokens, setBiometricEnabled } = useAuthStore();
   const { mutateAsync: verifyOTP, isPending } = useVerifyOtp();
   const { mutateAsync: sendOTP } = useSignIn();
 
@@ -178,6 +151,10 @@ export default function VerifyScreen() {
 
   const inputRefs = useRef<(TextInput | null)[]>(Array(OTP_LENGTH).fill(null));
   const timerRef = useRef<ReturnType<typeof setInterval>>(null as any);
+
+  const { data, updateData } = useOnboardingStore();
+  const phone = data.phoneNumber;
+  const maskedPhone = phone?.replace(/(\+234)(\d{3})(\d{4})(\d{4})/, '$1 $2 ****$4');
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -194,11 +171,6 @@ export default function VerifyScreen() {
   }, []);
 
   const fullOtp = otp.join('');
-  useEffect(() => {
-    if (fullOtp.length === OTP_LENGTH) {
-      handleVerify(fullOtp);
-    }
-  }, [fullOtp]);
 
   const handleDigit = (text: string, index: number) => {
     setHasError(false);
@@ -239,42 +211,9 @@ export default function VerifyScreen() {
 
       try {
         const res = await verifyOTP({ phoneNumber: phone, otpCode: code });
-        console.log({ res });
+        updateData({ accessToken: res.accessToken });
 
-        return;
-
-        // await storage.setTokens(res.accessToken);
-        // setTokens(res.accessToken);
-        // setVerified(true);
-
-        // const hasBiometric = await LocalAuthentication.hasHardwareAsync();
-        // const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-
-        // if (hasBiometric && isEnrolled) {
-        //   setTimeout(() => {
-        //     Alert.alert(
-        //       'Enable biometric login?',
-        //       'Sign in instantly next time with Face ID or fingerprint.',
-        //       [
-        //         {
-        //           text: 'Not now',
-        //           style: 'cancel',
-        //           onPress: () => router.replace('/(tabs)'),
-        //         },
-        //         {
-        //           text: 'Enable',
-        //           onPress: async () => {
-        //             await storage.setBiometricEnabled(true);
-        //             setBiometricEnabled(true);
-        //             router.replace('/(tabs)');
-        //           },
-        //         },
-        //       ]
-        //     );
-        //   }, 600);
-        // } else {
-        //   setTimeout(() => router.replace('/(tabs)'), 700);
-        // }
+        router.push('/(onboarding)/kyc-identity');
       } catch (e: any) {
         setHasError(true);
         setErrorMsg(e?.message ?? 'Verification failed. Please try again.');
@@ -283,13 +222,13 @@ export default function VerifyScreen() {
         setFocused(0);
       }
     },
-    [isPending, phone]
+    [isPending]
   );
 
   const handleResend = async () => {
     try {
       const res = await sendOTP({ phoneNumber: phone });
-      setCountdown(res.expiresIn);
+      setCountdown(OTP_EXPIRY_SECONDS);
       setCanResend(false);
       setOtp(Array(OTP_LENGTH).fill(''));
       setHasError(false);
@@ -307,9 +246,8 @@ export default function VerifyScreen() {
       checkScale.value = withSpring(1, { damping: 10, stiffness: 200 });
     }
   }, [verified]);
-  const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: checkScale.value }] }));
 
-  const maskedPhone = phone.replace(/(\+234)(\d{3})(\d{4})(\d{4})/, '$1 $2 ****$4');
+  const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: checkScale.value }] }));
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
@@ -317,7 +255,6 @@ export default function VerifyScreen() {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View className="flex-1 justify-between px-6 py-6">
-          {/* Back + header */}
           <Animated.View entering={FadeInDown.delay(0)} className="flex-row items-center gap-4">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -404,7 +341,7 @@ export default function VerifyScreen() {
                     entering={FadeInDown.duration(200)}
                     className="mb-4 flex-row items-center justify-center gap-3">
                     <View
-                      className="h-4 w-4 rounded-full border-2 border-indigo-400 border-t-transparent"
+                      className="h-4 w-4 rounded-full border-2 border-indigo-400"
                       style={{ borderTopColor: 'transparent' }}
                     />
                     <Text className="text-sm text-canvas-muted">Verifying…</Text>
@@ -438,11 +375,12 @@ export default function VerifyScreen() {
 
             {fullOtp.length === OTP_LENGTH && !isPending && !verified && (
               <Animated.View entering={FadeInUp.duration(300)}>
-                <TouchableOpacity
+                <Button
+                  label="Next →"
                   onPress={() => handleVerify(fullOtp)}
-                  className="items-center rounded-2xl bg-indigo-500 py-4 active:bg-indigo-700">
-                  <Text className="text-sm font-semibold text-white">Verify & sign in →</Text>
-                </TouchableOpacity>
+                  disabled={fullOtp.length !== OTP_LENGTH || isPending}
+                  loading={isPending}
+                />
               </Animated.View>
             )}
 

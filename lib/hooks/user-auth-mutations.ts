@@ -1,9 +1,9 @@
-import { refreshAccessToken, sendOTP, verifyOTP } from '@/lib/services/auth';
+import { refreshAccessToken, signIn, verifyOTP } from '@/lib/services/auth';
 import { useMutation } from '@tanstack/react-query';
 
-export function useSendOTP() {
+export function useSignIn() {
   return useMutation({
-    mutationFn: sendOTP,
+    mutationFn: signIn,
     retry: 1,
   });
 }

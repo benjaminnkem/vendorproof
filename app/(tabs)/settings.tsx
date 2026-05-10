@@ -1,3 +1,5 @@
+import { storage } from '@/lib/services/auth';
+import { useAuthStore } from '@/lib/store/auth.store';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -171,6 +173,13 @@ export default function SettingsScreen() {
   const [webhookSig, setWebhookSig] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
   const [compactView, setCompactView] = useState(false);
+
+  const { signOut } = useAuthStore();
+
+  const handleSignOut = async () => {
+    await storage.clearAll();
+    signOut();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
@@ -371,7 +380,7 @@ export default function SettingsScreen() {
               icon={<Ionicons name="log-out-outline" size={16} color="#E63946" />}
               label="Sign out"
               danger
-              onPress={() => {}}
+              onPress={handleSignOut}
             />
             <SettingRow
               icon={<Ionicons name="trash-outline" size={16} color="#E63946" />}

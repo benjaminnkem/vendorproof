@@ -19,54 +19,54 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type Category = {
-  id: RegistrationFormData['category'];
-  label: string;
-  icon: React.ReactNode;
-};
+// type Category = {
+//   id: RegistrationFormData['category'];
+//   label: string;
+//   icon: React.ReactNode;
+// };
 
-const CATEGORIES: Category[] = [
-  {
-    id: 'electronics',
-    label: 'Electronics',
-    icon: <Ionicons name="phone-portrait-outline" size={18} color="white" />,
-  },
-  {
-    id: 'fashion',
-    label: 'Fashion',
-    icon: <Ionicons name="shirt-outline" size={18} color="white" />,
-  },
-  {
-    id: 'food',
-    label: 'Food & Drinks',
-    icon: <Ionicons name="restaurant-outline" size={18} color="white" />,
-  },
-  {
-    id: 'logistics',
-    label: 'Logistics',
-    icon: <Ionicons name="train-outline" size={18} color="white" />,
-  },
-  {
-    id: 'beauty',
-    label: 'Beauty',
-    icon: <Ionicons name="sparkles-outline" size={18} color="white" />,
-  },
-  {
-    id: 'services',
-    label: 'Services',
-    icon: <Ionicons name="construct-outline" size={18} color="white" />,
-  },
-  {
-    id: 'groceries',
-    label: 'Groceries',
-    icon: <Ionicons name="cart-outline" size={18} color="white" />,
-  },
-  {
-    id: 'other',
-    label: 'Other',
-    icon: <Ionicons name="cube-outline" size={18} color="white" />,
-  },
-];
+// const CATEGORIES: Category[] = [
+//   {
+//     id: 'electronics',
+//     label: 'Electronics',
+//     icon: <Ionicons name="phone-portrait-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'fashion',
+//     label: 'Fashion',
+//     icon: <Ionicons name="shirt-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'food',
+//     label: 'Food & Drinks',
+//     icon: <Ionicons name="restaurant-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'logistics',
+//     label: 'Logistics',
+//     icon: <Ionicons name="train-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'beauty',
+//     label: 'Beauty',
+//     icon: <Ionicons name="sparkles-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'services',
+//     label: 'Services',
+//     icon: <Ionicons name="construct-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'groceries',
+//     label: 'Groceries',
+//     icon: <Ionicons name="cart-outline" size={18} color="white" />,
+//   },
+//   {
+//     id: 'other',
+//     label: 'Other',
+//     icon: <Ionicons name="cube-outline" size={18} color="white" />,
+//   },
+// ];
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -91,19 +91,23 @@ export default function RegisterScreen() {
     formState: { errors },
   } = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { fullName: '', phoneNumber: '', businessName: '', category: 'electronics' },
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+    },
   });
 
   const onSubmit = async (values: RegistrationFormData) => {
     try {
       await registerVendor({
-        fullName: values.fullName,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
         phoneNumber: values.phoneNumber,
-        businessName: values.businessName,
-        category: values.category,
       });
       updateData({ ...values });
-      router.push('/(onboarding)/document');
+      router.push('/(onboarding)/verify');
     } catch (e) {
       console.error('Register error', e);
     }
@@ -143,30 +147,53 @@ export default function RegisterScreen() {
           </Animated.View>
 
           <Animated.View style={{ opacity: fadeAnim }}>
-            <Controller
-              control={control}
-              name="fullName"
-              render={({ field: { onChange, value } }) => (
-                <View className="mb-5">
-                  <Text className="mb-2 text-xs uppercase tracking-widest text-canvas-muted">
-                    Full name
-                  </Text>
+            <View className="mb-5">
+              <Text className="mb-2 text-xs uppercase tracking-widest text-canvas-muted">
+                First name
+              </Text>
+              <Controller
+                control={control}
+                name="firstName"
+                render={({ field: { onChange, value } }) => (
                   <TextInput
                     value={value}
                     onChangeText={onChange}
-                    placeholder="As it appears on your ID"
+                    placeholder="Chinedu"
                     placeholderTextColor="#8892A4"
-                    autoCapitalize="words"
                     className={`rounded-xl border bg-canvas-surface px-4 py-4 text-base text-white ${
-                      errors.fullName ? 'border-alert-500' : 'border-canvas-border'
+                      errors.firstName ? 'border-alert-500' : 'border-canvas-border'
                     }`}
                   />
-                  {errors.fullName && (
-                    <Text className="mt-1.5 text-xs text-alert-300">{errors.fullName.message}</Text>
-                  )}
-                </View>
+                )}
+              />
+              {errors.firstName && (
+                <Text className="mt-1.5 text-xs text-alert-300">{errors.firstName.message}</Text>
               )}
-            />
+            </View>
+
+            <View className="mb-5">
+              <Text className="mb-2 text-xs uppercase tracking-widest text-canvas-muted">
+                Last name
+              </Text>
+              <Controller
+                control={control}
+                name="lastName"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder="Okafor"
+                    placeholderTextColor="#8892A4"
+                    className={`rounded-xl border bg-canvas-surface px-4 py-4 text-base text-white ${
+                      errors.lastName ? 'border-alert-500' : 'border-canvas-border'
+                    }`}
+                  />
+                )}
+              />
+              {errors.lastName && (
+                <Text className="mt-1.5 text-xs text-alert-300">{errors.lastName.message}</Text>
+              )}
+            </View>
 
             <Controller
               control={control}
@@ -196,6 +223,32 @@ export default function RegisterScreen() {
             />
 
             <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => (
+                <View className="mb-5">
+                  <Text className="mb-2 text-xs uppercase tracking-widest text-canvas-muted">
+                    Email address (optional)
+                  </Text>
+                  <TextInput
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder="chinedu@gmail.com"
+                    placeholderTextColor="#8892A4"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    className={`rounded-xl border bg-canvas-surface px-4 py-4 text-base text-white ${
+                      errors.email ? 'border-alert-500' : 'border-canvas-border'
+                    }`}
+                  />
+                  {errors.email && (
+                    <Text className="mt-1.5 text-xs text-alert-300">{errors.email.message}</Text>
+                  )}
+                </View>
+              )}
+            />
+
+            {/* <Controller
               control={control}
               name="businessName"
               render={({ field: { onChange, value } }) => (
@@ -258,7 +311,7 @@ export default function RegisterScreen() {
                   )}
                 </View>
               )}
-            />
+            /> */}
 
             <Button label="Continue →" onPress={handleSubmit(onSubmit)} loading={isPending} />
 

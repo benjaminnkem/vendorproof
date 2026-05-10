@@ -19,9 +19,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import '../global.css';
 
+import { toastConfig } from '@/lib/config/toast';
 import Providers from '@/lib/providers';
 import { storage } from '@/lib/services/auth';
 import { useAuthStore } from '@/lib/store/auth.store';
+import Toast from 'react-native-toast-message';
 
 function BootSplash() {
   const rotateVal = useSharedValue(0);
@@ -81,7 +83,7 @@ function BootSplash() {
 function useAuthGuard(isReady: boolean) {
   const segments = useSegments();
   const router = useRouter();
-  const { isAuthenticated, setTokens, setVendor, setBiometricEnabled } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (!isReady) return;
@@ -108,9 +110,9 @@ export default function RootLayout() {
   useEffect(() => {
     const boot = async () => {
       try {
-        const { access, refresh } = await storage.getTokens();
+        const { access } = await storage.getTokens();
 
-        if (!access || !refresh) {
+        if (!access) {
           setBooting(false);
           return;
         }
@@ -130,7 +132,7 @@ export default function RootLayout() {
             });
 
             if (result.success) {
-              setTokens(access, refresh);
+              setTokens(access);
               if (vendor) setVendor(vendor);
               setBiometricEnabled(true);
               setBooting(false);
@@ -138,7 +140,7 @@ export default function RootLayout() {
             }
           }
         } else {
-          setTokens(access, refresh);
+          setTokens(access);
           if (vendor) setVendor(vendor);
         }
       } catch (e) {
@@ -166,6 +168,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         </Stack>
         <StatusBar style="light" />
+        <Toast config={toastConfig} />
       </ThemeProvider>
     </Providers>
   );

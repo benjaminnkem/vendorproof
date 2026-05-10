@@ -15,13 +15,31 @@ export type DocumentType = 'nin' | 'cac' | 'utility';
 export type TrustTier = 'unverified' | 'bronze' | 'silver' | 'gold' | 'platinum';
 
 export interface OnboardingData {
-  fullName: string;
-  phone: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email?: string;
+
   businessName: string;
-  category: BusinessCategory | '';
-  documentType: DocumentType | '';
-  documentUri: string;
+  businessEmail?: string;
+  businessPhoneNumber?: string;
+  businessAlternativePhoneNumber?: string;
+  businessDescription?: string;
+  businessLogo?: string;
+  businessShowCaseImages?: string[];
+  kycBusinessCacDocument?: string;
+  kycBusinessTinNumber?: string;
+
+  socials?: string;
+
+  businessCategory: string;
+  documentType: DocumentType;
   selfieUri: string;
+
+  kycSelfie: string;
+  kycIdDocument: string;
+
+  accessToken?: string;
 }
 
 export interface TrustScore {
@@ -43,13 +61,19 @@ interface OnboardingState {
 }
 
 const initialData: OnboardingData = {
-  fullName: '',
-  phone: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  phoneNumber: '',
   businessName: '',
-  category: '',
-  documentType: '',
-  documentUri: '',
+  businessCategory: '',
+  documentType: 'nin',
   selfieUri: '',
+
+  kycSelfie: '',
+  kycIdDocument: '',
+
+  accessToken: '',
 };
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({

@@ -1,4 +1,4 @@
-import { useSendOTP } from '@/lib/hooks/user-auth-mutations';
+import { useSignIn } from '@/lib/hooks/user-auth-mutations';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -182,9 +182,8 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const inputRef = useRef<TextInput>(null as any);
 
-  const { mutateAsync: sendOTP, isPending } = useSendOTP();
+  const { mutateAsync: sendOTP, isPending } = useSignIn();
 
-  // Normalize: strip leading 0 for E.164, keep raw for display
   const normalizePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
     return digits.startsWith('0') ? `+234${digits.slice(1)}` : `+234${digits}`;
@@ -200,14 +199,12 @@ export default function LoginScreen() {
     setError('');
 
     try {
-      const res = await sendOTP({ phone: normalizePhone(phone) });
+      const normalizedPhone = normalizePhone(phone);
+      await sendOTP({ phoneNumber: normalizedPhone });
+
       router.push({
         pathname: '/(auth)/verify',
-        params: {
-          phone: normalizePhone(phone),
-          sessionId: res.sessionId,
-          expiresIn: res.expiresIn,
-        },
+        params: { phone: normalizePhone(phone) },
       });
     } catch (e: any) {
       setError(e?.message ?? 'Something went wrong. Please try again.');
@@ -329,13 +326,13 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Demo hint */}
-            <View className="flex-row items-start gap-2 rounded-xl border border-indigo-500/20 bg-indigo-900/30 px-4 py-3">
+            {/* <View className="flex-row items-start gap-2 rounded-xl border border-indigo-500/20 bg-indigo-900/30 px-4 py-3">
               <Ionicons name="information-circle-outline" size={15} color="#7B8FF7" />
               <Text className="flex-1 text-xs leading-relaxed text-indigo-300/70">
                 Demo: any valid Nigerian number works. Use OTP{' '}
                 <Text className="font-bold text-indigo-300">123456</Text> to sign in.
               </Text>
-            </View>
+            </View> */}
           </Animated.View>
         </View>
       </KeyboardAvoidingView>

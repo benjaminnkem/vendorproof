@@ -1,29 +1,35 @@
 import { z } from 'zod';
 
 export const registrationSchema = z.object({
-  fullName: z
-    .string()
-    .min(3, 'Full name must be at least 3 characters')
-    .max(80, 'Name is too long')
-    .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens, and apostrophes'),
+  // fullName: z
+  //   .string()
+  //   .min(3, 'Full name must be at least 3 characters')
+  //   .max(80, 'Name is too long')
+  //   .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens, and apostrophes'),
+
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
 
   phoneNumber: z.string().regex(/^(\+234|0)[789][01]\d{8}$/, 'Enter a valid Nigerian phone number'),
 
-  businessName: z
-    .string()
-    .min(2, 'Business name must be at least 2 characters')
-    .max(100, 'Business name is too long'),
+  email: z.email('Invalid email address').optional(),
 
-  category: z.enum([
-    'electronics',
-    'fashion',
-    'food',
-    'logistics',
-    'beauty',
-    'services',
-    'groceries',
-    'other',
-  ]),
+  // businessName: z
+  //   .string()
+  //   .min(2, 'Business name must be at least 2 characters')
+  //   .max(100, 'Business name is too long'),
+
+  // category: z.enum([
+  //   'electronics',
+  //   'fashion',
+  //   'food',
+  //   'logistics',
+  //   'beauty',
+  //   'services',
+  //   'groceries',
+  //   'other',
+  // ]),
 });
 
 export type RegistrationFormData = z.infer<typeof registrationSchema>;
