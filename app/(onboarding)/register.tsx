@@ -91,14 +91,14 @@ export default function RegisterScreen() {
     formState: { errors },
   } = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { fullName: '', phone: '', businessName: '', category: 'electronics' },
+    defaultValues: { fullName: '', phoneNumber: '', businessName: '', category: 'electronics' },
   });
 
   const onSubmit = async (values: RegistrationFormData) => {
     try {
       await registerVendor({
         fullName: values.fullName,
-        phone: values.phone,
+        phoneNumber: values.phoneNumber,
         businessName: values.businessName,
         category: values.category,
       });
@@ -170,7 +170,7 @@ export default function RegisterScreen() {
 
             <Controller
               control={control}
-              name="phone"
+              name="phoneNumber"
               render={({ field: { onChange, value } }) => (
                 <View className="mb-5">
                   <Text className="mb-2 text-xs uppercase tracking-widest text-canvas-muted">
@@ -183,11 +183,13 @@ export default function RegisterScreen() {
                     placeholderTextColor="#8892A4"
                     keyboardType="phone-pad"
                     className={`rounded-xl border bg-canvas-surface px-4 py-4 text-base text-white ${
-                      errors.phone ? 'border-alert-500' : 'border-canvas-border'
+                      errors.phoneNumber ? 'border-alert-500' : 'border-canvas-border'
                     }`}
                   />
-                  {errors.phone && (
-                    <Text className="mt-1.5 text-xs text-alert-300">{errors.phone.message}</Text>
+                  {errors.phoneNumber && (
+                    <Text className="mt-1.5 text-xs text-alert-300">
+                      {errors.phoneNumber.message}
+                    </Text>
                   )}
                 </View>
               )}

@@ -4,7 +4,7 @@ const SIMULATED_DELAY = (ms: number) => new Promise((resolve) => setTimeout(reso
 
 export interface RegisterVendorPayload {
   fullName: string;
-  phone: string;
+  phoneNumber: string;
   businessName: string;
   category: string;
 }

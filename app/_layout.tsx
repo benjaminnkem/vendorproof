@@ -17,9 +17,9 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
 
+import Providers from '@/lib/providers';
 import { storage } from '@/lib/services/auth';
 import { useAuthStore } from '@/lib/store/auth.store';
 
@@ -158,7 +158,7 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
+    <Providers>
       <ThemeProvider value={DarkTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
@@ -167,6 +167,6 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="light" />
       </ThemeProvider>
-    </SafeAreaProvider>
+    </Providers>
   );
 }
