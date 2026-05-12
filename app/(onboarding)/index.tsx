@@ -1,5 +1,6 @@
 import { Button } from '@/components/onboarding/shared';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Text, View } from 'react-native';
@@ -41,7 +42,6 @@ function HexGrid() {
     <Animated.View
       style={{ opacity, transform: [{ scale }] }}
       className="items-center justify-center">
-      {/* Outer hex ring */}
       <View
         className="h-52 w-52 items-center justify-center"
         style={{
@@ -50,7 +50,6 @@ function HexGrid() {
           borderRadius: 8,
           transform: [{ rotate: '15deg' }],
         }}>
-        {/* Mid hex */}
         <View
           className="h-36 w-36 items-center justify-center"
           style={{
@@ -59,7 +58,6 @@ function HexGrid() {
             borderRadius: 6,
             transform: [{ rotate: '-8deg' }],
           }}>
-          {/* Inner shield */}
           <View
             className="h-20 w-20 items-center justify-center bg-indigo-900"
             style={{
@@ -68,12 +66,11 @@ function HexGrid() {
               borderRadius: 5,
               transform: [{ rotate: '5deg' }],
             }}>
-            <Text style={{ fontSize: 32 }}>🛡️</Text>
+            <MaterialCommunityIcons name="shield-check" size={36} color="#818CF8" />
           </View>
         </View>
       </View>
 
-      {/* Orbit dots */}
       {[0, 60, 120, 180, 240, 300].map((deg, i) => {
         const rad = (deg * Math.PI) / 180;
         const r = 110;
@@ -91,7 +88,6 @@ function HexGrid() {
         );
       })}
 
-      {/* Corner scan lines */}
       <View
         className="absolute"
         style={{
@@ -120,11 +116,28 @@ function HexGrid() {
   );
 }
 
+const trustIndicators = [
+  {
+    icon: <MaterialCommunityIcons name="brain" size={14} color="#20C997" />,
+    label: 'AI-scored',
+    sub: 'Smart risk analysis',
+  },
+  {
+    icon: <Feather name="zap" size={14} color="#20C997" />,
+    label: 'Instant badge',
+    sub: 'Live in minutes',
+  },
+  {
+    icon: <MaterialCommunityIcons name="shield-lock-outline" size={14} color="#20C997" />,
+    label: 'Squad-secured',
+    sub: 'End-to-end protected',
+  },
+];
+
 export default function WelcomeScreen() {
   const router = useRouter();
   const reset = useOnboardingStore((s) => s.reset);
 
-  // Entrance animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
@@ -148,7 +161,6 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
-      {/* Background grid texture */}
       <View className="absolute inset-0 opacity-5">
         {Array.from({ length: 12 }).map((_, row) =>
           Array.from({ length: 8 }).map((_, col) => (
@@ -167,7 +179,6 @@ export default function WelcomeScreen() {
       </View>
 
       <View className="flex-1 justify-between px-6 py-8">
-        {/* Top label */}
         <View className="flex-row items-center gap-2">
           <View className="h-1.5 w-1.5 rounded-full bg-teal-500" />
           <Text className="text-xs uppercase tracking-widest text-canvas-muted">
@@ -175,12 +186,10 @@ export default function WelcomeScreen() {
           </Text>
         </View>
 
-        {/* Illustration */}
         <Animated.View style={{ opacity: fadeAnim }} className="flex-1 items-center justify-center">
           <HexGrid />
         </Animated.View>
 
-        {/* Copy */}
         <Animated.View
           style={{
             opacity: fadeAnim,
@@ -211,7 +220,6 @@ export default function WelcomeScreen() {
             />
           </View>
 
-          {/* Trust indicators */}
           <View className="mt-8 flex-row justify-center gap-6">
             {['AI-scored', 'Squad-powered', 'Instant badge'].map((label) => (
               <View key={label} className="items-center gap-1">

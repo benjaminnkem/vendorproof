@@ -5,7 +5,7 @@ import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -50,6 +50,8 @@ export default function DocumentScreen() {
     name: string;
     valid: boolean;
   } | null>(null);
+
+  const { fromSignIn } = useLocalSearchParams<{ fromSignIn: string }>();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -116,7 +118,7 @@ export default function DocumentScreen() {
         valid: res.documentValid,
       });
 
-      updateData({ documentType: selectedType, documentUri: imageUri });
+      updateData({ documentType: selectedType });
 
       Animated.spring(successAnim, {
         toValue: 1,
@@ -136,11 +138,16 @@ export default function DocumentScreen() {
       <View className="flex-1 px-6">
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
           <View className="mb-8 mt-4 flex-row items-center justify-between">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
-              <Ionicons name="chevron-back" size={22} color="#fff" />
-            </TouchableOpacity>
+            {fromSignIn == 'true' ? (
+              <View className="size-10"></View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
+                <Ionicons name="arrow-back" size={18} color="#8892A4" />
+              </TouchableOpacity>
+            )}
+
             <StepIndicator total={4} current={1} />
             <View className="w-10" />
           </View>
@@ -294,7 +301,7 @@ export default function DocumentScreen() {
           ) : (
             <Button
               label="Continue to face match →"
-              onPress={() => router.push('/(onboarding)/selfie')}
+              onPress={() => router.push('/(onboarding)/kyc-identity')}
             />
           )}
         </View>

@@ -1,7 +1,9 @@
 import { storage } from '@/lib/services/auth';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -175,10 +177,16 @@ export default function SettingsScreen() {
   const [compactView, setCompactView] = useState(false);
 
   const { signOut } = useAuthStore();
+  const { reset: resetOnboarding } = useOnboardingStore();
+
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await storage.clearAll();
+    resetOnboarding();
     signOut();
+
+    router.replace('/(auth)/login');
   };
 
   return (

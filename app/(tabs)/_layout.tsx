@@ -1,7 +1,10 @@
+import useUser from '@/lib/hooks/use-user';
 import { Tabs } from 'expo-router';
 import CustomTabBar from '../../components/dashboard/tabbar';
 
 export default function TabsLayout() {
+  useUser();
+
   return (
     <Tabs tabBar={(props) => <CustomTabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" options={{ title: 'Home' }} />

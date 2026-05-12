@@ -200,11 +200,11 @@ export default function LoginScreen() {
 
     try {
       const normalizedPhone = normalizePhone(phone);
-      await sendOTP({ phoneNumber: normalizedPhone });
+      const data = await sendOTP({ phoneNumber: normalizedPhone });
 
       router.push({
         pathname: '/(auth)/verify',
-        params: { phone: normalizePhone(phone) },
+        params: { phone: normalizedPhone, otp: data.meta.otp },
       });
     } catch (e: any) {
       setError(e?.message ?? 'Something went wrong. Please try again.');

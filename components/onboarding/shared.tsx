@@ -8,6 +8,7 @@ interface ButtonProps {
   disabled?: boolean;
   variant?: 'primary' | 'outline' | 'ghost';
   className?: string;
+  rightIcon?: React.ReactNode;
 }
 
 export function Button({

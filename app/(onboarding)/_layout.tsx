@@ -13,7 +13,7 @@ export default function OnboardingLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="register" />
         <Stack.Screen name="document" />
-        <Stack.Screen name="selfie" />
+        <Stack.Screen name="kyc-identity" />
         <Stack.Screen name="processing" />
         <Stack.Screen name="result" />
       </Stack>

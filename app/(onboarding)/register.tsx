@@ -100,14 +100,14 @@ export default function RegisterScreen() {
 
   const onSubmit = async (values: RegistrationFormData) => {
     try {
-      await registerVendor({
+      const res = await registerVendor({
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         phoneNumber: values.phoneNumber,
       });
       updateData({ ...values });
-      router.push('/(onboarding)/verify');
+      router.push({ pathname: '/(onboarding)/verify', params: { otp: res.meta?.otp } });
     } catch (e) {
       console.error('Register error', e);
     }

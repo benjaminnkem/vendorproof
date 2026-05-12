@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import useUser from '../hooks/use-user';
 import { getAppConfig } from '../services/config-api';
 
 const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
@@ -10,6 +11,9 @@ const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+
+  const { user, loading } = useUser();
+  console.log(JSON.stringify(user, null, 2));
 
   return <>{children}</>;
 };

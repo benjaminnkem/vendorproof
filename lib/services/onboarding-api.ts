@@ -45,12 +45,16 @@ export interface ComputeTrustScorePayload {
 
 export interface ComputeTrustScoreResponse extends TrustScore {}
 
+export interface RegisterVendorMeta {
+  otp: string;
+}
+
 export async function registerVendor(payload: RegisterVendorPayload) {
-  const { data } = await publicApi.post<ApiResponse<RegisterVendorResponse>>(
+  const { data } = await publicApi.post<ApiResponse<RegisterVendorResponse, RegisterVendorMeta>>(
     '/auth/signup/step-1',
     payload
   );
-  return data.data;
+  return data;
 }
 
 export interface VerifyOtpPayload {

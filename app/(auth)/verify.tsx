@@ -1,6 +1,7 @@
-import { useVerifyOtp } from '@/lib/hooks/use-onboarding';
-import { useSignIn } from '@/lib/hooks/user-auth-mutations';
+import { storage } from '@/lib/config/storage';
+import { useSignIn, useVerifyOTP } from '@/lib/hooks/user-auth-mutations';
 import { useAuthStore } from '@/lib/store/auth.store';
+import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -162,10 +163,10 @@ async function promptBiometric(): Promise<boolean> {
 
 export default function VerifyScreen() {
   const router = useRouter();
-  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const { phone, otp: demoOtp } = useLocalSearchParams<{ phone: string; otp: string }>();
 
   const { setTokens, setBiometricEnabled } = useAuthStore();
-  const { mutateAsync: verifyOTP, isPending } = useVerifyOtp();
+  const { mutateAsync: verifyOTP, isPending } = useVerifyOTP();
   const { mutateAsync: sendOTP } = useSignIn();
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
@@ -178,6 +179,8 @@ export default function VerifyScreen() {
 
   const inputRefs = useRef<(TextInput | null)[]>(Array(OTP_LENGTH).fill(null));
   const timerRef = useRef<ReturnType<typeof setInterval>>(null as any);
+
+  const { updateData } = useOnboardingStore();
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -238,43 +241,48 @@ export default function VerifyScreen() {
       setHasError(false);
 
       try {
-        const res = await verifyOTP({ phoneNumber: phone, otpCode: code });
-        console.log({ res });
+        const res = await verifyOTP({ phoneNumber: phone, otp: code });
+        const data = res.data;
 
-        return;
+        if (data.nextStep) {
+          updateData({ accessToken: data.accessToken });
+        } else {
+          await storage.setTokens(data.accessToken);
+          setTokens(data.accessToken);
+          setVerified(true);
+        }
 
-        // await storage.setTokens(res.accessToken);
-        // setTokens(res.accessToken);
-        // setVerified(true);
+        switch (data.nextStep) {
+          case 3:
+            router.replace({
+              pathname: '/(onboarding)/kyc-identity',
+              params: { fromSignIn: 'true' },
+            });
+            break;
+          case 4:
+            router.replace({
+              pathname: '/(onboarding)/business-profile',
+              params: { fromSignIn: 'true' },
+            });
+            break;
+          case 5:
+            router.replace({
+              pathname: '/(onboarding)/document',
+              params: { fromSignIn: 'true' },
+            });
+            break;
+          case 6:
+            router.replace({
+              pathname: '/(onboarding)/processing',
+              params: { fromSignIn: 'true' },
+            });
+            break;
+          default:
+            router.replace({ pathname: '/(tabs)' });
+            break;
+        }
 
-        // const hasBiometric = await LocalAuthentication.hasHardwareAsync();
-        // const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-
-        // if (hasBiometric && isEnrolled) {
-        //   setTimeout(() => {
-        //     Alert.alert(
-        //       'Enable biometric login?',
-        //       'Sign in instantly next time with Face ID or fingerprint.',
-        //       [
-        //         {
-        //           text: 'Not now',
-        //           style: 'cancel',
-        //           onPress: () => router.replace('/(tabs)'),
-        //         },
-        //         {
-        //           text: 'Enable',
-        //           onPress: async () => {
-        //             await storage.setBiometricEnabled(true);
-        //             setBiometricEnabled(true);
-        //             router.replace('/(tabs)');
-        //           },
-        //         },
-        //       ]
-        //     );
-        //   }, 600);
-        // } else {
-        //   setTimeout(() => router.replace('/(tabs)'), 700);
-        // }
+        // return;
       } catch (e: any) {
         setHasError(true);
         setErrorMsg(e?.message ?? 'Verification failed. Please try again.');
@@ -289,7 +297,7 @@ export default function VerifyScreen() {
   const handleResend = async () => {
     try {
       const res = await sendOTP({ phoneNumber: phone });
-      setCountdown(res.expiresIn);
+      // setCountdown(res.expiresIn);
       setCanResend(false);
       setOtp(Array(OTP_LENGTH).fill(''));
       setHasError(false);
@@ -446,12 +454,12 @@ export default function VerifyScreen() {
               </Animated.View>
             )}
 
-            {/* <View className="flex-row items-start gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-4 py-3">
+            <View className="flex-row items-start gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-4 py-3">
               <Ionicons name="bulb-outline" size={14} color="#7B8FF7" />
               <Text className="flex-1 text-xs leading-relaxed text-indigo-300/60">
-                Demo OTP: <Text className="font-bold text-indigo-300">123456</Text>
+                Demo OTP: <Text className="font-bold text-indigo-300">{demoOtp}</Text>
               </Text>
-            </View> */}
+            </View>
           </Animated.View>
         </View>
       </KeyboardAvoidingView>

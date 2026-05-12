@@ -3,7 +3,7 @@ import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -172,6 +172,8 @@ export default function KYCIdentityScreen() {
   const [selfie, setSelfie] = useState<KYCImageSlot>({ uri: null, state: 'idle' });
   const [idDoc, setIdDoc] = useState<KYCImageSlot>({ uri: null, state: 'idle' });
 
+  const { fromSignIn } = useLocalSearchParams<{ fromSignIn: string }>();
+
   const canContinue = selfie.state === 'captured' && idDoc.state === 'captured';
 
   const { mutateAsync: handleUpdateKycDocuments, isPending: isUpdatingKycDocuments } =
@@ -257,11 +259,15 @@ export default function KYCIdentityScreen() {
         <Animated.View
           entering={FadeInDown.delay(0)}
           className="mb-8 flex-row items-center justify-between pt-4">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
-            <Ionicons name="arrow-back" size={18} color="#8892A4" />
-          </TouchableOpacity>
+          {fromSignIn == 'true' ? (
+            <View className="size-10"></View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="h-10 w-10 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface">
+              <Ionicons name="arrow-back" size={18} color="#8892A4" />
+            </TouchableOpacity>
+          )}
 
           <View className="flex-row items-center gap-1.5">
             {[0, 1, 2].map((i) => (

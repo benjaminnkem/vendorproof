@@ -19,9 +19,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import '../global.css';
 
+import { storage } from '@/lib/config/storage';
 import { toastConfig } from '@/lib/config/toast';
 import Providers from '@/lib/providers';
-import { storage } from '@/lib/services/auth';
 import { useAuthStore } from '@/lib/store/auth.store';
 import Toast from 'react-native-toast-message';
 
@@ -88,14 +88,14 @@ function useAuthGuard(isReady: boolean) {
   useEffect(() => {
     if (!isReady) return;
 
-    const inAuth = segments[0] === '(auth)';
-    const inOnboarding = segments[0] === '(onboarding)';
+    // const inAuth = segments[0] === '(auth)';
+    // const inOnboarding = segments[0] === '(onboarding)';
 
-    if (isAuthenticated) {
-      if (inAuth) router.replace('/(tabs)');
-    } else {
-      if (!inAuth && !inOnboarding) router.replace('/(auth)/login');
-    }
+    // if (isAuthenticated) {
+    //   if (inAuth) router.replace('/(tabs)');
+    // } else {
+    //   if (!inAuth && !inOnboarding) router.replace('/(auth)/login');
+    // }
   }, [isAuthenticated, segments, isReady]);
 }
 
@@ -144,7 +144,7 @@ export default function RootLayout() {
           if (vendor) setVendor(vendor);
         }
       } catch (e) {
-        await storage.clearAll();
+        await storage?.clearAll();
       } finally {
         setBooting(false);
       }

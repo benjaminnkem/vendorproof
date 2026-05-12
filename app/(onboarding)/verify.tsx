@@ -3,7 +3,7 @@ import { useVerifyOtp } from '@/lib/hooks/use-onboarding';
 import { useSignIn } from '@/lib/hooks/user-auth-mutations';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -148,6 +148,8 @@ export default function VerifyScreen() {
   const [countdown, setCountdown] = useState(OTP_EXPIRY_SECONDS);
   const [canResend, setCanResend] = useState(false);
   const [verified, setVerified] = useState(false);
+
+  const { otp: demoOtp } = useLocalSearchParams<{ phone: string; otp: string }>();
 
   const inputRefs = useRef<(TextInput | null)[]>(Array(OTP_LENGTH).fill(null));
   const timerRef = useRef<ReturnType<typeof setInterval>>(null as any);
@@ -384,12 +386,12 @@ export default function VerifyScreen() {
               </Animated.View>
             )}
 
-            {/* <View className="flex-row items-start gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-4 py-3">
+            <View className="flex-row items-start gap-2 rounded-xl border border-canvas-border bg-canvas-surface px-4 py-3">
               <Ionicons name="bulb-outline" size={14} color="#7B8FF7" />
               <Text className="flex-1 text-xs leading-relaxed text-indigo-300/60">
-                Demo OTP: <Text className="font-bold text-indigo-300">123456</Text>
+                Demo OTP: <Text className="font-bold text-indigo-300">{demoOtp}</Text>
               </Text>
-            </View> */}
+            </View>
           </Animated.View>
         </View>
       </KeyboardAvoidingView>

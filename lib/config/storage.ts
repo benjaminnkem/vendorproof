@@ -1,32 +1,48 @@
 import * as SecureStore from 'expo-secure-store';
-import type { PersistStorage } from 'zustand/middleware';
+import type { AuthVendor } from '../store/auth.store';
 
-export const secureStorage: PersistStorage<any> = {
-  setItem: async (name, value) => {
-    await SecureStore.setItemAsync(name, JSON.stringify(value));
+const KEYS = {
+  ACCESS_TOKEN: 'vp_access_token',
+  REFRESH_TOKEN: 'vp_refresh_token',
+  VENDOR: 'vp_vendor',
+  BIOMETRIC: 'vp_biometric_enabled',
+} as const;
+
+export const storage = {
+  async setTokens(access: string, refresh?: string) {
+    await Promise.all([
+      SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, access),
+      refresh && SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refresh),
+    ]);
   },
-  getItem: async (name) => {
-    const value = await SecureStore.getItemAsync(name);
-    return value ? JSON.parse(value) : null;
+
+  async getTokens(): Promise<{ access: string | null; refresh: string | null }> {
+    const [access, refresh] = await Promise.all([
+      SecureStore.getItemAsync(KEYS.ACCESS_TOKEN),
+      SecureStore.getItemAsync(KEYS.REFRESH_TOKEN),
+    ]);
+    return { access, refresh };
   },
-  removeItem: async (name) => {
-    await SecureStore.deleteItemAsync(name);
+
+  async setVendor(vendor: AuthVendor) {
+    await SecureStore.setItemAsync(KEYS.VENDOR, JSON.stringify(vendor));
   },
-};
 
-export const getStoreValueFor = async (key: string) => {
-  let result = await SecureStore.getItemAsync(key);
-  if (result) {
-    return result;
-  } else {
-    return null;
-  }
-};
+  async getVendor(): Promise<AuthVendor | null> {
+    const raw = await SecureStore.getItemAsync(KEYS.VENDOR);
+    return raw ? (JSON.parse(raw) as AuthVendor) : null;
+  },
 
-export const saveStoreValue = async (key: string, value: string) => {
-  await SecureStore.setItemAsync(key, value);
-};
+  async setBiometricEnabled(val: boolean) {
+    await SecureStore.setItemAsync(KEYS.BIOMETRIC, val ? '1' : '0');
+  },
 
-export const removeStoreValue = async (key: string) => {
-  await SecureStore.deleteItemAsync(key);
+  async getBiometricEnabled(): Promise<boolean> {
+    const val = await SecureStore.getItemAsync(KEYS.BIOMETRIC);
+    return val === '1';
+  },
+
+  async clearAll() {
+    await Promise.all(Object.values(KEYS).map((k) => SecureStore.deleteItemAsync(k)));
+  },
 };
