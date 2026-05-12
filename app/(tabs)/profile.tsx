@@ -1,3 +1,4 @@
+import useUser from '@/lib/hooks/use-user';
 import { MOCK_VENDOR, TIER_CONFIG, formatNaira } from '@/lib/types/dashboard';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect } from 'react';
@@ -13,11 +14,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// ── Avatar with ring ──────────────────────────────────────────────────────────
 function ProfileAvatar() {
   const v = MOCK_VENDOR;
   const tc = TIER_CONFIG[v.tier];
   const pulse = useSharedValue(1);
+
+  const { user } = useUser();
 
   useEffect(() => {
     pulse.value = withRepeat(
@@ -42,8 +44,10 @@ function ProfileAvatar() {
         </View>
       </Animated.View>
 
-      <Text className="mb-1 text-xl font-semibold text-white">{v.fullName}</Text>
-      <Text className="mb-3 text-sm text-canvas-muted">{v.businessName}</Text>
+      <Text className="mb-1 text-xl font-semibold text-white">
+        {user?.firstName} {user?.lastName}
+      </Text>
+      <Text className="mb-3 text-sm text-canvas-muted">{user?.phoneNumber}</Text>
 
       {/* Tier badge */}
       <View
@@ -58,7 +62,6 @@ function ProfileAvatar() {
   );
 }
 
-// ── Info row ──────────────────────────────────────────────────────────────────
 function InfoRow({
   icon,
   label,
@@ -84,7 +87,6 @@ function InfoRow({
   );
 }
 
-// ── Score breakdown card ──────────────────────────────────────────────────────
 function ScoreBreakdown() {
   const v = MOCK_VENDOR;
   const tc = TIER_CONFIG[v.tier];
@@ -171,7 +173,6 @@ function ScoreBreakdown() {
   );
 }
 
-// ── Stats grid ────────────────────────────────────────────────────────────────
 function ProfileStats() {
   const v = MOCK_VENDOR;
   const stats = [
@@ -200,7 +201,6 @@ function ProfileStats() {
   );
 }
 
-// ── Details card ──────────────────────────────────────────────────────────────
 function ProfileDetails() {
   const v = MOCK_VENDOR;
   return (
@@ -238,7 +238,6 @@ function ProfileDetails() {
   );
 }
 
-// ── Upgrade CTA ───────────────────────────────────────────────────────────────
 function UpgradeCTA() {
   const v = MOCK_VENDOR;
   const ptsLeft = 95 - v.trustScore;
@@ -271,7 +270,6 @@ function UpgradeCTA() {
   );
 }
 
-// ── Screen ────────────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-canvas">

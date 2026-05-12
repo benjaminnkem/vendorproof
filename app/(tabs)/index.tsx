@@ -1,3 +1,4 @@
+import useUser from '@/lib/hooks/use-user';
 import {
   MOCK_SCORE_HISTORY,
   MOCK_TRANSACTIONS,
@@ -344,7 +345,8 @@ function RecentTxns({ onSeeAll }: { onSeeAll: () => void }) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const v = MOCK_VENDOR;
+
+  const { user } = useUser();
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
@@ -357,7 +359,7 @@ export default function HomeScreen() {
           className="mb-5 flex-row items-center justify-between pt-4">
           <View>
             <Text className="mb-0.5 text-xs text-canvas-muted">Good morning 👋</Text>
-            <Text className="text-xl font-semibold text-white">{v.fullName.split(' ')[0]}</Text>
+            <Text className="text-xl font-semibold text-white">{user?.firstName}</Text>
           </View>
 
           <View className="flex-row items-center gap-2.5">
@@ -368,7 +370,7 @@ export default function HomeScreen() {
 
             <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-indigo-900">
               <Text className="text-base font-semibold text-indigo-200">
-                {v.fullName.charAt(0)}
+                {user?.firstName.charAt(0)}
               </Text>
             </View>
           </View>

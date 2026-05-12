@@ -1,4 +1,5 @@
-import { storage } from '@/lib/services/auth';
+import { storage } from '@/lib/config/storage';
+import useUser from '@/lib/hooks/use-user';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
@@ -18,10 +19,12 @@ function ToggleSwitch({
   value,
   onChange,
   color = '#4361EE',
+  disabled,
 }: {
   value: boolean;
   onChange: (v: boolean) => void;
   color?: string;
+  disabled?: boolean;
 }) {
   const translateX = useSharedValue(value ? 20 : 2);
 
@@ -37,9 +40,10 @@ function ToggleSwitch({
   return (
     <TouchableOpacity
       onPress={() => handleChange(!value)}
+      disabled={disabled}
       className={`h-7 w-12 justify-center rounded-full border ${
         value ? 'border-transparent' : 'border-canvas-border bg-canvas-elevated'
-      }`}
+      } disabled:opacity-20`}
       style={value ? { backgroundColor: color } : {}}
       activeOpacity={0.8}>
       <Animated.View style={thumbStyle} className="h-5 w-5 rounded-full bg-white shadow-sm" />
@@ -57,6 +61,7 @@ function SettingRow({
   danger = false,
   last = false,
   badge,
+  disabled,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -67,10 +72,12 @@ function SettingRow({
   danger?: boolean;
   last?: boolean;
   badge?: string;
+  disabled?: boolean;
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={disabled}
       activeOpacity={onPress ? 0.7 : 1}
       className={`flex-row items-center gap-3 px-4 py-4 ${!last ? 'border-b border-canvas-border' : ''}`}>
       <View
@@ -96,7 +103,7 @@ function SettingRow({
       )}
 
       {onToggle !== undefined && value !== undefined ? (
-        <ToggleSwitch value={value} onChange={onToggle} />
+        <ToggleSwitch value={value} onChange={onToggle} disabled={disabled} />
       ) : onPress ? (
         <Ionicons name="chevron-forward" size={16} color="#8892A4" />
       ) : null}
@@ -129,6 +136,8 @@ function AccountCard() {
   const v = MOCK_VENDOR;
   const tc = TIER_CONFIG[v.tier];
 
+  const { user } = useUser();
+
   return (
     <Animated.View entering={FadeInDown.delay(60)} className="mb-5">
       <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface p-4">
@@ -145,8 +154,10 @@ function AccountCard() {
             <Text style={{ fontSize: 24 }}>👤</Text>
           </View>
           <View className="flex-1">
-            <Text className="text-base font-semibold text-white">{v.fullName}</Text>
-            <Text className="mb-1.5 text-xs text-canvas-muted">{v.phone}</Text>
+            <Text className="text-base font-semibold text-white">
+              {user?.firstName} {user?.lastName}
+            </Text>
+            <Text className="mb-1.5 text-xs text-canvas-muted">{user?.phoneNumber}</Text>
             <View
               className="flex-row items-center gap-1.5 self-start rounded-full border px-2 py-0.5"
               style={{ backgroundColor: tc.bg, borderColor: tc.color + '50' }}>
@@ -325,6 +336,7 @@ export default function SettingsScreen() {
             label="Dark mode"
             value={darkMode}
             onToggle={setDarkMode}
+            disabled
           />
           <SettingRow
             icon={<Ionicons name="grid-outline" size={16} color="#8892A4" />}

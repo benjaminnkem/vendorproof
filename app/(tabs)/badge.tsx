@@ -1,3 +1,4 @@
+import useUser from '@/lib/hooks/use-user';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect } from 'react';
@@ -246,6 +247,8 @@ export default function BadgeScreen() {
   const v = MOCK_VENDOR;
   const tc = TIER_CONFIG[v.tier];
 
+  const { user } = useUser();
+
   return (
     <SafeAreaView className="flex-1 bg-canvas">
       <ScrollView
@@ -257,7 +260,9 @@ export default function BadgeScreen() {
           <Text className="mb-1 text-xs uppercase tracking-widest text-canvas-muted">
             Your trust badge
           </Text>
-          <Text className="text-2xl font-semibold text-white">{v.businessName}</Text>
+          <Text className="text-2xl font-semibold text-white">
+            {user?.firstName} {user?.lastName}
+          </Text>
         </Animated.View>
 
         {/* Medallion */}
@@ -271,13 +276,15 @@ export default function BadgeScreen() {
             <View className="mb-3 flex-row items-center gap-3 border-b border-canvas-border pb-3">
               <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-indigo-900">
                 <Text className="text-base font-semibold text-indigo-200">
-                  {v.fullName.charAt(0)}
+                  {user?.firstName.charAt(0)}
                 </Text>
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-white">{v.fullName}</Text>
+                <Text className="text-sm font-semibold text-white">
+                  {user?.firstName} {user?.lastName}
+                </Text>
                 <Text className="text-xs text-canvas-muted">
-                  {v.category} · {v.location}
+                  {v.category} · {user?.phoneNumber}
                 </Text>
               </View>
               <View

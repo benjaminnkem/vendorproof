@@ -19,6 +19,7 @@
     "@tanstack/react-query": "^5.100.9",
     "axios": "^1.16.0",
     "babel-preset-expo": "^55.0.21",
+    "date-fns": "^4.1.0",
     "expo": "~54.0.33",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",
