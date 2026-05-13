@@ -6,7 +6,7 @@ import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/botto
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -306,6 +306,32 @@ function ShowcaseSection() {
   );
 }
 
+function ViewOnWebButton() {
+  const { user } = useUser();
+  const business = user?.business;
+  const slug = business?.slug;
+
+  const handlePress = async () => {
+    if (!slug) return;
+    const url = `https://vendorproof-frontend.oluwadunsin.dev/vendor/${slug}`;
+    await Linking.openURL(url);
+  };
+
+  if (!slug) return null;
+
+  return (
+    <Animated.View entering={FadeInDown.delay(100)} className="mb-5">
+      <TouchableOpacity
+        onPress={handlePress}
+        className="flex-row items-center gap-2.5 rounded-3xl border border-canvas-border bg-canvas-surface px-5 py-4 active:bg-canvas-elevated">
+        <Ionicons name="globe-outline" size={20} color="#22C55E" />
+        <Text className="font-semibold text-white">View business on the web</Text>
+        <Ionicons name="arrow-up-right-box-outline" size={16} color="#8892A4" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 export default function BusinessProfileDetailScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -356,6 +382,10 @@ export default function BusinessProfileDetailScreen() {
     bottomSheetRef.current?.close();
   }, []);
 
+  const { user } = useUser();
+  const business = user?.business;
+  const slug = business?.slug;
+
   const handleSubmit = useCallback(() => {
     if (!selectedPlatform || !url.trim()) return;
 
@@ -397,6 +427,7 @@ export default function BusinessProfileDetailScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}>
         <BusinessHeader />
+        <ViewOnWebButton />
         <ContactSection />
         <SocialsSection
           onAddPress={openAddSheet}

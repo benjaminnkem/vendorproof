@@ -78,7 +78,7 @@ function InfoRow({
       </View>
       <View className="flex-1">
         <Text className="mb-0.5 text-xs text-canvas-muted">{label}</Text>
-        <Text className="text-sm font-medium text-white">{value}</Text>
+        <Text className="text-sm font-medium capitalize text-white">{value}</Text>
       </View>
     </View>
   );
@@ -109,6 +109,8 @@ function ScoreBreakdown() {
     },
   ];
 
+  const { user } = useUser();
+
   return (
     <Animated.View entering={FadeInDown.delay(220)} className="mb-4">
       <Text className="mb-3 text-sm font-semibold text-white">Score breakdown</Text>
@@ -116,7 +118,7 @@ function ScoreBreakdown() {
         <View className="border-b border-canvas-border px-4 pb-3 pt-4">
           <View className="mb-3 flex-row items-end gap-2">
             <Text className="font-light text-white" style={{ fontSize: 56, lineHeight: 60 }}>
-              {v.trustScore}
+              {user?.business.trustScore || '-'}
             </Text>
             <View className="pb-3">
               <Text className="text-base text-canvas-muted">/ 100</Text>
@@ -228,8 +230,8 @@ function BusinessSnippet() {
         />
         <InfoRow
           icon={<Ionicons name="location-outline" size={15} color="#7B8FF7" />}
-          label="Location"
-          value={v.location}
+          label="Category"
+          value={business?.category || '-'}
           last
         />
 
