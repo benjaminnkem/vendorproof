@@ -65,7 +65,8 @@ export const removeBusinessSocialLink = async (id: number) => {
   return data.data;
 };
 
-export interface BankDetails {
+export interface BankDetail {
+  id: number;
   bankName: string;
   accountNumber: string;
   accountName: string;
@@ -73,7 +74,16 @@ export interface BankDetails {
 }
 
 export const getBusinessBankDetails = async () => {
-  const { data } = await authApi.get<ApiResponse<Array<BankDetails>>>('/business/me/bank-details');
+  const { data } = await authApi.get<ApiResponse<Array<BankDetail>>>('/business/me/bank-details');
+  return data.data;
+};
+
+export const addBankDetails = async (payload: BankDetail) => {
+  const { data } = await authApi.post<ApiResponse<BankDetail>>(
+    '/business/me/bank-details',
+    payload
+  );
+
   return data.data;
 };
 
@@ -82,9 +92,9 @@ export const updateBankDetails = async ({
   payload,
 }: {
   id: number;
-  payload: Partial<BankDetails>;
+  payload: Partial<BankDetail>;
 }) => {
-  const { data } = await authApi.patch<ApiResponse<BankDetails>>(
+  const { data } = await authApi.patch<ApiResponse<BankDetail>>(
     `/business/me/bank-details/${id}`,
     payload
   );
@@ -92,9 +102,7 @@ export const updateBankDetails = async ({
 };
 
 export const removeBusinessBankDetails = async (id: number) => {
-  const { data } = await authApi.delete<ApiResponse<BankDetails>>(
-    `/business/me/bank-details/${id}`
-  );
+  const { data } = await authApi.delete<ApiResponse<BankDetail>>(`/business/me/bank-details/${id}`);
   return data.data;
 };
 

@@ -1,5 +1,6 @@
 import { ApiResponse } from '../config/api';
 import { authApi } from '../config/axios';
+import { BankDetail } from './business-api';
 
 export interface GetProfileResponse {
   email: null;
@@ -14,12 +15,17 @@ export interface GetProfileResponse {
     logo: null;
     kycStatus: string;
     showCaseImages: [];
-    socials: [];
+    socials: {
+      id: number;
+      platform: string;
+      url: string;
+    }[];
     trustScore: number;
     showcaseImages?: string[];
     description?: string;
     phoneNumber?: string;
     category?: string;
+    bankDetails: BankDetail[];
   };
 }
 

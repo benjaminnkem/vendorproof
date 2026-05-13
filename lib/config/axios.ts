@@ -23,6 +23,8 @@ authApi.interceptors.request.use(async (config) => {
   const { access } = await storage.getTokens();
   const accessToken = useAuthStore.getState().accessToken;
 
+  // console.log({ accessToken });
+
   if (accessToken || access) config.headers['Authorization'] = `Bearer ${accessToken || access}`;
 
   return config;

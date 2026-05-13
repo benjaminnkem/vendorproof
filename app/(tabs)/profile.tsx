@@ -19,7 +19,6 @@ function ProfileAvatar() {
   const v = MOCK_VENDOR;
   const tc = TIER_CONFIG[v.tier];
   const pulse = useSharedValue(1);
-
   const { user } = useUser();
 
   useEffect(() => {
@@ -133,14 +132,11 @@ function ScoreBreakdown() {
           <View className="h-1.5 overflow-hidden rounded-full bg-canvas-border">
             <View
               className="h-full rounded-full"
-              style={{
-                width: `${v.trustScore}%`,
-                backgroundColor: tc.color,
-              }}
+              style={{ width: `${v.trustScore}%`, backgroundColor: tc.color }}
             />
           </View>
         </View>
-        x{' '}
+
         {layers.map(({ label, value, color, desc }, i) => (
           <View
             key={label}
@@ -196,17 +192,16 @@ function ProfileStats() {
   );
 }
 
-function ProfileDetails() {
+function BusinessSnippet() {
   const router = useRouter();
-  const v = MOCK_VENDOR;
   const { user } = useUser();
+  const v = MOCK_VENDOR;
   const business = user?.business;
 
   return (
     <Animated.View entering={FadeInDown.delay(300)} className="mb-4">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-sm font-semibold text-white">Business details</Text>
-
         <TouchableOpacity
           onPress={() => router.push('/(profile)/edit-business')}
           className="flex-row items-center gap-1 rounded-full bg-canvas-surface px-3 py-1.5 active:bg-canvas-elevated">
@@ -235,13 +230,25 @@ function ProfileDetails() {
           icon={<Ionicons name="location-outline" size={15} color="#7B8FF7" />}
           label="Location"
           value={v.location}
-        />
-        <InfoRow
-          icon={<Ionicons name="calendar-outline" size={15} color="#7B8FF7" />}
-          label="Member since"
-          value={v.joinDate}
           last
         />
+
+        <TouchableOpacity
+          onPress={() => router.push('/(profile)/business')}
+          className="flex-row items-center justify-between border-t border-canvas-border px-4 py-4 active:bg-canvas-elevated">
+          <View className="flex-row items-center gap-3">
+            <View className="h-8 w-8 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-900/60">
+              <Ionicons name="storefront-outline" size={15} color="#7B8FF7" />
+            </View>
+            <View>
+              <Text className="text-sm font-medium text-white">Full business profile</Text>
+              <Text className="text-xs text-canvas-muted">
+                Showcase images, socials, bank details
+              </Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color="#8892A4" />
+        </TouchableOpacity>
       </View>
     </Animated.View>
   );
@@ -292,7 +299,7 @@ export default function ProfileScreen() {
 
         <ProfileStats />
         <ScoreBreakdown />
-        <ProfileDetails />
+        <BusinessSnippet />
         <UpgradeCTA />
       </ScrollView>
     </SafeAreaView>
