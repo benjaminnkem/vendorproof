@@ -104,7 +104,7 @@ export const updateKycDocuments = async ({
   return data.data;
 };
 
-export const updateBusinessProfile = async ({
+export const registerBusinessProfile = async ({
   payload,
   accessToken,
 }: {

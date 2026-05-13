@@ -1,4 +1,5 @@
 import { Button } from '@/components/onboarding/shared';
+import useUser from '@/lib/hooks/use-user';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -37,6 +38,13 @@ function HexGrid() {
     inputRange: [0, 1],
     outputRange: [0.97, 1.03],
   });
+
+  const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) router.replace('/(tabs)');
+  }, [user]);
 
   return (
     <Animated.View

@@ -1,7 +1,16 @@
-import { Stack } from 'expo-router';
+import useUser from '@/lib/hooks/use-user';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
 export default function OnboardingLayout() {
+  const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) router.replace('/(tabs)');
+  }, [user]);
+
   return (
     <>
       <Stack

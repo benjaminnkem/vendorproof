@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import {
   computeTrustScore,
+  registerBusinessProfile,
   registerVendor,
-  updateBusinessProfile,
   updateKycDocuments,
   verifyDocument,
   verifyOtp,
@@ -34,10 +34,10 @@ export function useUpdateKycDocuments() {
   });
 }
 
-export function useUpdateBusinessProfile() {
+export function useRegisterBusinessProfile() {
   return useMutation({
     mutationFn: (payload: { payload: FormData; accessToken: string }) =>
-      updateBusinessProfile(payload),
+      registerBusinessProfile(payload),
   });
 }
 

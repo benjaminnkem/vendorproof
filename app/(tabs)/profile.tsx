@@ -1,6 +1,7 @@
 import useUser from '@/lib/hooks/use-user';
 import { MOCK_VENDOR, TIER_CONFIG, formatNaira } from '@/lib/types/dashboard';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -32,11 +33,9 @@ function ProfileAvatar() {
 
   return (
     <View className="items-center pb-4 pt-6">
-      {/* Animated outer ring */}
       <Animated.View
         style={[ringStyle, { borderColor: tc.color + '30', borderWidth: 1.5, borderRadius: 60 }]}
         className="mb-3 h-28 w-28 items-center justify-center rounded-full">
-        {/* Inner avatar */}
         <View
           className="h-24 w-24 items-center justify-center rounded-full border-2"
           style={{ backgroundColor: tc.bg, borderColor: tc.color }}>
@@ -49,7 +48,6 @@ function ProfileAvatar() {
       </Text>
       <Text className="mb-3 text-sm text-canvas-muted">{user?.phoneNumber}</Text>
 
-      {/* Tier badge */}
       <View
         className="flex-row items-center gap-2 rounded-full border px-4 py-1.5"
         style={{ backgroundColor: tc.bg, borderColor: tc.color + '50' }}>
@@ -70,7 +68,7 @@ function InfoRow({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value?: string;
   last?: boolean;
 }) {
   return (
@@ -116,7 +114,6 @@ function ScoreBreakdown() {
     <Animated.View entering={FadeInDown.delay(220)} className="mb-4">
       <Text className="mb-3 text-sm font-semibold text-white">Score breakdown</Text>
       <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface">
-        {/* Big score */}
         <View className="border-b border-canvas-border px-4 pb-3 pt-4">
           <View className="mb-3 flex-row items-end gap-2">
             <Text className="font-light text-white" style={{ fontSize: 56, lineHeight: 60 }}>
@@ -133,7 +130,6 @@ function ScoreBreakdown() {
               </View>
             </View>
           </View>
-          {/* Composite bar */}
           <View className="h-1.5 overflow-hidden rounded-full bg-canvas-border">
             <View
               className="h-full rounded-full"
@@ -144,8 +140,7 @@ function ScoreBreakdown() {
             />
           </View>
         </View>
-
-        {/* Layer bars */}
+        x{' '}
         {layers.map(({ label, value, color, desc }, i) => (
           <View
             key={label}
@@ -202,25 +197,39 @@ function ProfileStats() {
 }
 
 function ProfileDetails() {
+  const router = useRouter();
   const v = MOCK_VENDOR;
+  const { user } = useUser();
+  const business = user?.business;
+
   return (
     <Animated.View entering={FadeInDown.delay(300)} className="mb-4">
-      <Text className="mb-3 text-sm font-semibold text-white">Business details</Text>
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="text-sm font-semibold text-white">Business details</Text>
+
+        <TouchableOpacity
+          onPress={() => router.push('/(profile)/edit-business')}
+          className="flex-row items-center gap-1 rounded-full bg-canvas-surface px-3 py-1.5 active:bg-canvas-elevated">
+          <Ionicons name="create-outline" size={16} color="#8892A4" />
+          <Text className="text-xs font-medium text-canvas-muted">Edit</Text>
+        </TouchableOpacity>
+      </View>
+
       <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface">
         <InfoRow
           icon={<Ionicons name="business-outline" size={15} color="#7B8FF7" />}
           label="Business name"
-          value={v.businessName}
+          value={business?.name}
         />
         <InfoRow
           icon={<MaterialCommunityIcons name="tag-outline" size={15} color="#7B8FF7" />}
           label="Category"
-          value={v.category}
+          value={v?.category}
         />
         <InfoRow
           icon={<Ionicons name="call-outline" size={15} color="#7B8FF7" />}
           label="Phone"
-          value={v.phone}
+          value={user?.phoneNumber}
         />
         <InfoRow
           icon={<Ionicons name="location-outline" size={15} color="#7B8FF7" />}

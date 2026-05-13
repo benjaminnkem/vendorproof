@@ -13,7 +13,6 @@ const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const { user, loading } = useUser();
-  console.log(JSON.stringify(user, null, 2));
 
   return <>{children}</>;
 };

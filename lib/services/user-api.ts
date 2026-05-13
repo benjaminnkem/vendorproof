@@ -7,7 +7,7 @@ export interface GetProfileResponse {
   id: number;
   lastName: string;
   phoneNumber: string;
-  businesses: {
+  business: {
     id: number;
     name: string;
     slug: string;
@@ -15,9 +15,12 @@ export interface GetProfileResponse {
     kycStatus: string;
     showCaseImages: [];
     socials: [];
-    category: null;
     trustScore: number;
-  }[];
+    showcaseImages?: string[];
+    description?: string;
+    phoneNumber?: string;
+    category?: string;
+  };
 }
 
 export const getProfile = async () => {
