@@ -1,5 +1,6 @@
 import { ApiResponse } from '../config/api';
 import { authApi, publicApi } from '../config/axios';
+import { PaginationResponse } from './api';
 
 interface GetProfileResponse {
   id: number;
@@ -203,4 +204,26 @@ export const updateService = async ({
 export const deleteService = async (id: string) => {
   const { data } = await authApi.delete<ApiResponse<Service>>(`/business/me/services/${id}`);
   return data.data;
+};
+
+export interface Transaction {
+  id: number;
+  amount: number;
+  status: string;
+  createdAt: string;
+  buyerName: string;
+  buyerEmail: string;
+}
+
+export const getTransactions = async (params: { page: number; limit: number; status?: string }) => {
+  try {
+    const { data } = await authApi.get<ApiResponse<PaginationResponse<Transaction>>>(
+      '/business/me/transactions',
+      { params }
+    );
+    return data.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };

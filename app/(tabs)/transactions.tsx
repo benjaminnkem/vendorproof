@@ -1,12 +1,21 @@
+import { getTransactions, Transaction } from '@/lib/services/business-api';
 import {
-  MOCK_TRANSACTIONS,
-  MOCK_WEEKLY_EARNINGS,
   formatDate,
   formatNaira,
+  MOCK_TRANSACTIONS,
+  MOCK_WEEKLY_EARNINGS,
 } from '@/lib/types/dashboard';
 import { Ionicons } from '@expo/vector-icons';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,10 +23,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const { width } = Dimensions.get('window');
 const CHART_W = width - 40;
 
-type Filter = 'all' | 'success' | 'pending' | 'failed';
+type Filter = 'all' | 'completed' | 'pending' | 'failed';
 
 const STATUS_META = {
-  success: {
+  completed: {
     color: '#20C997',
     bg: '#0a1a14',
     border: '#0B7A52',
@@ -32,7 +41,6 @@ const STATUS_META = {
   },
 };
 
-// ── Summary strip ─────────────────────────────────────────────────────────────
 function SummaryStrip() {
   const success = MOCK_TRANSACTIONS.filter((t) => t.status === 'success');
   const total = success.reduce((s, t) => s + t.amount, 0);
@@ -73,7 +81,6 @@ function SummaryStrip() {
   );
 }
 
-// ── Activity bar chart ────────────────────────────────────────────────────────
 function ActivityChart() {
   return (
     <Animated.View entering={FadeInDown.delay(140)} className="mb-5">
@@ -109,11 +116,10 @@ function ActivityChart() {
   );
 }
 
-// ── Filter pills ──────────────────────────────────────────────────────────────
 function FilterPills({ active, onChange }: { active: Filter; onChange: (f: Filter) => void }) {
   const filters: { id: Filter; label: string }[] = [
     { id: 'all', label: 'All' },
-    { id: 'success', label: 'Completed' },
+    { id: 'completed', label: 'Completed' },
     { id: 'pending', label: 'Pending' },
     { id: 'failed', label: 'Failed' },
   ];
@@ -146,9 +152,8 @@ function FilterPills({ active, onChange }: { active: Filter; onChange: (f: Filte
   );
 }
 
-// ── Transaction row ───────────────────────────────────────────────────────────
-function TxnRow({ txn, index }: { txn: (typeof MOCK_TRANSACTIONS)[0]; index: number }) {
-  const meta = STATUS_META[txn.status];
+function TxnRow({ txn, index }: { txn: Transaction; index: number }) {
+  const meta = STATUS_META[txn.status.toLowerCase() as Exclude<Filter, 'all'>];
 
   return (
     <Animated.View entering={FadeInRight.delay(index * 40).springify()}>
@@ -163,9 +168,9 @@ function TxnRow({ txn, index }: { txn: (typeof MOCK_TRANSACTIONS)[0]; index: num
         <View className="flex-1">
           <Text className="mb-0.5 text-sm font-medium text-white">{txn.buyerName}</Text>
           <View className="flex-row items-center gap-1.5">
-            <Text className="text-xs text-canvas-muted">{txn.category}</Text>
+            <Text className="text-xs text-canvas-muted">{txn.amount}</Text>
             <Text className="text-xs text-canvas-muted">·</Text>
-            <Text className="text-xs text-canvas-muted">{formatDate(txn.date)}</Text>
+            <Text className="text-xs text-canvas-muted">{formatDate(txn.createdAt)}</Text>
           </View>
         </View>
 
@@ -180,12 +185,27 @@ function TxnRow({ txn, index }: { txn: (typeof MOCK_TRANSACTIONS)[0]; index: num
   );
 }
 
-// ── Screen ────────────────────────────────────────────────────────────────────
 export default function TransactionsScreen() {
   const [filter, setFilter] = useState<Filter>('all');
 
-  const filtered =
-    filter === 'all' ? MOCK_TRANSACTIONS : MOCK_TRANSACTIONS.filter((t) => t.status === filter);
+  const { data, isLoading } = useInfiniteQuery({
+    queryKey: ['transactions', filter],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      getTransactions({
+        page: pageParam,
+        limit: 10,
+        status: filter === 'all' ? undefined : filter.toUpperCase(),
+      }),
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.meta?.hasNextPage) {
+        return lastPage.meta.page + 1;
+      }
+      return undefined;
+    },
+  });
+
+  const transactions = data?.pages.flatMap((page) => page.data) || [];
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
@@ -193,7 +213,6 @@ export default function TransactionsScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <Animated.View entering={FadeInDown.delay(0)} className="mb-5 pt-4">
           <Text className="mb-1 text-xs uppercase tracking-widest text-canvas-muted">
             Payment history
@@ -205,14 +224,15 @@ export default function TransactionsScreen() {
         <ActivityChart />
         <FilterPills active={filter} onChange={setFilter} />
 
-        {/* Transaction list */}
         <Animated.View entering={FadeInDown.delay(240)}>
           <Text className="mb-3 text-sm font-semibold text-white">
-            {filtered.length} transactions
+            {transactions.length} transactions
           </Text>
-          {filtered.map((txn, i) => (
-            <TxnRow key={txn.id} txn={txn} index={i} />
-          ))}
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#20C997" />
+          ) : (
+            transactions.map((txn, i) => <TxnRow key={txn.id} txn={txn} index={i} />)
+          )}
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
