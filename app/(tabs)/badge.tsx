@@ -1,6 +1,7 @@
 import useUser from '@/lib/hooks/use-user';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { Dimensions, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -45,10 +46,12 @@ function OrbitRings({ color }: { color: string }) {
 }
 
 function BadgeMedallion() {
-  const v = MOCK_VENDOR;
-  const tc = TIER_CONFIG[v.tier];
   const scaleVal = useSharedValue(0.8);
   const glowVal = useSharedValue(0);
+
+  const { user } = useUser();
+  const business = user?.business;
+  const tc = TIER_CONFIG[business?.tier?.name.toLowerCase() as keyof typeof TIER_CONFIG];
 
   useEffect(() => {
     scaleVal.value = withSpring(1, { damping: 12, stiffness: 120 });
@@ -65,28 +68,24 @@ function BadgeMedallion() {
     <View className="my-8 items-center justify-center" style={{ height: 280 }}>
       <OrbitRings color={tc.color} />
 
-      {/* Outer glow */}
       <Animated.View
         style={[glowStyle, { backgroundColor: tc.color + '15' }]}
         className="absolute h-52 w-52 rounded-full"
       />
 
-      {/* Badge ring */}
       <Animated.View
         style={[scaleStyle, { borderColor: tc.color, borderWidth: 2 }]}
         className="h-44 w-44 items-center justify-center rounded-full">
-        {/* Inner surface */}
         <View
           className="h-36 w-36 items-center justify-center rounded-full border border-canvas-border bg-canvas-surface"
           style={{ backgroundColor: tc.bg }}>
           <MaterialCommunityIcons name="shield-check" size={32} color={tc.color} />
-          <Text className="mt-1 text-3xl font-light text-white">{v.trustScore}</Text>
-          <Text className="mt-0.5 text-xs font-medium" style={{ color: tc.color }}>
-            {tc.label}
+          <Text className="mt-1 text-3xl font-light text-white">{business?.trustScore}</Text>
+          <Text className="mt-0.5 text-xs font-medium capitalize" style={{ color: tc.color }}>
+            {business?.tier?.name.toLowerCase()}
           </Text>
         </View>
 
-        {/* Orbit dots */}
         {[0, 90, 180, 270].map((deg, i) => {
           const rad = (deg * Math.PI) / 180;
           const r = 72;
@@ -137,7 +136,9 @@ function VerificationChecks() {
 
 function QRCard() {
   const v = MOCK_VENDOR;
-  const tc = TIER_CONFIG[v.tier];
+
+  const { user } = useUser();
+  const business = user?.business;
 
   return (
     <Animated.View entering={FadeInDown.delay(300)} className="mb-4">
@@ -168,13 +169,14 @@ function QRCard() {
 }
 
 function ShareActions() {
-  const v = MOCK_VENDOR;
-  const tc = TIER_CONFIG[v.tier];
+  const { user } = useUser();
+  const business = user?.business;
+  const tc = TIER_CONFIG[business?.tier?.name.toLowerCase() as keyof typeof TIER_CONFIG];
 
   const handleShare = async () => {
     await Share.share({
-      message: `I'm a verified vendor on VendorProof!\n\nTrust Score: ${v.trustScore}/100 · ${tc.label} Tier\n\nPay me securely: ${v.squadPaymentLink}`,
-      title: `${v.businessName} — VendorProof Badge`,
+      message: `I'm a verified vendor on VendorProof!\n\nTrust Score: ${business?.trustScore}/100 · ${tc.label} Tier\n\nPay me securely: ${business?.paymentLink}`,
+      title: `${business?.name} — VendorProof Badge`,
     });
   };
 
@@ -244,10 +246,9 @@ function PaymentLinkCard() {
 }
 
 export default function BadgeScreen() {
-  const v = MOCK_VENDOR;
-  const tc = TIER_CONFIG[v.tier];
-
   const { user } = useUser();
+  const business = user?.business;
+  const tc = TIER_CONFIG[business?.tier?.name.toLowerCase() as keyof typeof TIER_CONFIG];
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
@@ -255,36 +256,29 @@ export default function BadgeScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <Animated.View entering={FadeInDown.delay(0)} className="mb-2 pt-4">
           <Text className="mb-1 text-xs uppercase tracking-widest text-canvas-muted">
             Your trust badge
           </Text>
-          <Text className="text-2xl font-semibold text-white">
-            {user?.firstName} {user?.lastName}
-          </Text>
+          <Text className="text-2xl font-semibold text-white">{business?.name}</Text>
         </Animated.View>
 
-        {/* Medallion */}
         <Animated.View entering={FadeInDown.delay(60)}>
           <BadgeMedallion />
         </Animated.View>
 
-        {/* Vendor info strip */}
         <Animated.View entering={FadeInDown.delay(120)} className="mb-4">
           <View className="rounded-3xl border border-canvas-border bg-canvas-surface p-4">
             <View className="mb-3 flex-row items-center gap-3 border-b border-canvas-border pb-3">
               <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-indigo-900">
                 <Text className="text-base font-semibold text-indigo-200">
-                  {user?.firstName.charAt(0)}
+                  {business?.name.charAt(0)}
                 </Text>
               </View>
               <View className="flex-1">
-                <Text className="text-sm font-semibold text-white">
-                  {user?.firstName} {user?.lastName}
-                </Text>
+                <Text className="text-sm font-semibold text-white">{business?.name}</Text>
                 <Text className="text-xs text-canvas-muted">
-                  {v.category} · {user?.phoneNumber}
+                  {business?.category} · {user?.phoneNumber}
                 </Text>
               </View>
               <View
@@ -298,9 +292,9 @@ export default function BadgeScreen() {
 
             <View className="flex-row">
               {[
-                { label: 'Trust score', value: `${v.trustScore}/100` },
-                { label: 'Transactions', value: `${v.totalTransactions}` },
-                { label: 'Member since', value: v.joinDate },
+                { label: 'Trust score', value: `${business?.trustScore}/100` },
+                { label: 'Transactions', value: `${0}` },
+                { label: 'Member since', value: format(business?.createdAt!, 'MMMM yyyy') },
               ].map(({ label, value }, i) => (
                 <View
                   key={label}

@@ -4,6 +4,7 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -137,26 +138,31 @@ function AccountCard() {
   const tc = TIER_CONFIG[v.tier];
 
   const { user } = useUser();
+  const business = user?.business;
 
   return (
     <Animated.View entering={FadeInDown.delay(60)} className="mb-5">
       <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface p-4">
-        {/* bg glow */}
         <View
           className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
           style={{ backgroundColor: tc.color }}
         />
 
         <View className="flex-row items-center gap-3">
-          <View
-            className="h-14 w-14 items-center justify-center rounded-full border-2"
-            style={{ backgroundColor: tc.bg, borderColor: tc.color }}>
-            <Text style={{ fontSize: 24 }}>👤</Text>
-          </View>
+          {business?.logo ? (
+            <Image
+              source={{ uri: business?.logo }}
+              style={{ width: 56, height: 56, borderRadius: 56 }}
+            />
+          ) : (
+            <View
+              className="h-14 w-14 items-center justify-center rounded-full border-2"
+              style={{ backgroundColor: tc.bg, borderColor: tc.color }}>
+              <Text style={{ fontSize: 24 }}>👤</Text>
+            </View>
+          )}
           <View className="flex-1">
-            <Text className="text-base font-semibold text-white">
-              {user?.firstName} {user?.lastName}
-            </Text>
+            <Text className="text-base font-semibold text-white">{business?.name}</Text>
             <Text className="mb-1.5 text-xs text-canvas-muted">{user?.phoneNumber}</Text>
             <View
               className="flex-row items-center gap-1.5 self-start rounded-full border px-2 py-0.5"

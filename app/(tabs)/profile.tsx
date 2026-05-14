@@ -1,6 +1,7 @@
 import useUser from '@/lib/hooks/use-user';
 import { MOCK_VENDOR, TIER_CONFIG, formatNaira } from '@/lib/types/dashboard';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -20,6 +21,7 @@ function ProfileAvatar() {
   const tc = TIER_CONFIG[v.tier];
   const pulse = useSharedValue(1);
   const { user } = useUser();
+  const business = user?.business;
 
   useEffect(() => {
     pulse.value = withRepeat(
@@ -35,16 +37,21 @@ function ProfileAvatar() {
       <Animated.View
         style={[ringStyle, { borderColor: tc.color + '30', borderWidth: 1.5, borderRadius: 60 }]}
         className="mb-3 h-28 w-28 items-center justify-center rounded-full">
-        <View
-          className="h-24 w-24 items-center justify-center rounded-full border-2"
-          style={{ backgroundColor: tc.bg, borderColor: tc.color }}>
-          <Text style={{ fontSize: 40 }}>👤</Text>
-        </View>
+        {business?.logo ? (
+          <Image
+            source={{ uri: business?.logo }}
+            style={{ width: 96, height: 96, borderRadius: 96 }}
+          />
+        ) : (
+          <View
+            className="h-24 w-24 items-center justify-center rounded-full border-2"
+            style={{ backgroundColor: tc.bg, borderColor: tc.color }}>
+            <Text style={{ fontSize: 40 }}>👤</Text>
+          </View>
+        )}
       </Animated.View>
 
-      <Text className="mb-1 text-xl font-semibold text-white">
-        {user?.firstName} {user?.lastName}
-      </Text>
+      <Text className="mb-1 text-xl font-semibold text-white">{business?.name}</Text>
       <Text className="mb-3 text-sm text-canvas-muted">{user?.phoneNumber}</Text>
 
       <View

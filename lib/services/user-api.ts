@@ -26,6 +26,18 @@ export interface GetProfileResponse {
     phoneNumber?: string;
     category?: string;
     bankDetails: BankDetail[];
+    createdAt: string;
+    tier: {
+      id: number;
+      name: string;
+      description: string;
+      minScore: number;
+      maxScore: number;
+      createdAt: string;
+      updatedAt: string;
+    };
+    paymentLink: string;
+    qrCodeUrl: string | null;
   };
 }
 

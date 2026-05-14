@@ -4,6 +4,7 @@ import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -108,7 +109,7 @@ function BusinessHeader() {
 
         <View className="flex-row border-t border-canvas-border">
           {[
-            { label: 'Member since', value: v.joinDate },
+            { label: 'Member since', value: format(business?.createdAt!, 'MMMM yyyy') },
             { label: 'Location', value: 'Lagos Island' },
             { label: 'Orders', value: `${v.totalTransactions}` },
           ].map(({ label, value }, i) => (
@@ -309,6 +310,7 @@ function ShowcaseSection() {
 function ViewOnWebButton() {
   const { user } = useUser();
   const business = user?.business;
+  console.log(JSON.stringify(business, null, 2));
   const slug = business?.slug;
 
   const handlePress = async () => {
