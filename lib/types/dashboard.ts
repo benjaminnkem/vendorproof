@@ -164,13 +164,13 @@ export const MOCK_SCORE_HISTORY: ScoreHistory[] = [
 ];
 
 export const MOCK_WEEKLY_EARNINGS = [
-  { day: 'Mon', amount: 45000 },
-  { day: 'Tue', amount: 78000 },
-  { day: 'Wed', amount: 32000 },
-  { day: 'Thu', amount: 91000 },
-  { day: 'Fri', amount: 55000 },
-  { day: 'Sat', amount: 120000 },
-  { day: 'Sun', amount: 61000 },
+  { day: 'Mon', earnings: 45000 },
+  { day: 'Tue', earnings: 78000 },
+  { day: 'Wed', earnings: 32000 },
+  { day: 'Thu', earnings: 91000 },
+  { day: 'Fri', earnings: 55000 },
+  { day: 'Sat', earnings: 120000 },
+  { day: 'Sun', earnings: 61000 },
 ];
 
 export const formatNaira = (amount: number): string => `₦${amount.toLocaleString('en-NG')}`;

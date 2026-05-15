@@ -1,6 +1,7 @@
+import { isAxiosError } from 'axios';
 import { ApiResponse } from '../config/api';
 import { authApi, publicApi } from '../config/axios';
-import { PaginationResponse } from './api';
+import { PaginationMeta } from './api';
 
 interface GetProfileResponse {
   id: number;
@@ -217,13 +218,15 @@ export interface Transaction {
 
 export const getTransactions = async (params: { page: number; limit: number; status?: string }) => {
   try {
-    const { data } = await authApi.get<ApiResponse<PaginationResponse<Transaction>>>(
+    const { data } = await authApi.get<ApiResponse<Transaction, PaginationMeta>>(
       '/business/me/transactions',
       { params }
     );
-    return data.data;
+    return data;
   } catch (error) {
-    console.log(error);
+    if (isAxiosError(error)) {
+      console.log(error.response?.data);
+    }
     throw error;
   }
 };

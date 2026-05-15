@@ -1,17 +1,25 @@
 import useUser from '@/lib/hooks/use-user';
+import { getDashboardAnalytics } from '@/lib/services/analytics-api';
 import {
-  MOCK_SCORE_HISTORY,
   MOCK_TRANSACTIONS,
   MOCK_VENDOR,
-  MOCK_WEEKLY_EARNINGS,
   TIER_CONFIG,
   formatDate,
   formatNaira,
 } from '@/lib/types/dashboard';
+import { formatNairaCompact } from '@/lib/utils/app';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import Animated, {
   Easing,
@@ -63,7 +71,6 @@ function PulseDot({ color }: { color: string }) {
 
 function TrustScoreCard() {
   const v = MOCK_VENDOR;
-  const tc = TIER_CONFIG[v.tier];
 
   const barWidth = useSharedValue(0);
   useEffect(() => {
@@ -73,10 +80,27 @@ function TrustScoreCard() {
     });
   }, []);
 
+  const { data: analytics, isPending } = useQuery({
+    queryFn: getDashboardAnalytics,
+    queryKey: ['dashboard-analytics'],
+  });
+
+  if (isPending)
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#20C997" />
+      </View>
+    );
+
+  if (!analytics) return null;
+
+  const tc =
+    TIER_CONFIG[analytics?.currentTier?.toLocaleLowerCase() as unknown as keyof typeof TIER_CONFIG];
+
   const bars = [
-    { label: 'Document', val: v.documentScore, color: '#4361EE' },
-    { label: 'Biometric', val: v.biometricScore, color: '#20C997' },
-    { label: 'Behavioral', val: v.behavioralScore, color: tc.color },
+    { label: 'Document', val: analytics.kycScores.document, color: '#4361EE' },
+    { label: 'Biometric', val: analytics.kycScores.biometric, color: '#20C997' },
+    { label: 'Behavioral', val: analytics.kycScores.transactionsConsistency, color: tc.color },
   ];
 
   return (
@@ -96,7 +120,7 @@ function TrustScoreCard() {
               </Text>
             </View>
             <Text className="font-light text-white" style={{ fontSize: 68, lineHeight: 72 }}>
-              {v.trustScore}
+              {analytics.trustScore}
             </Text>
             <Text className="-mt-1 text-sm text-canvas-muted">/ 100</Text>
 
@@ -105,7 +129,7 @@ function TrustScoreCard() {
               style={{ backgroundColor: tc.bg, borderColor: tc.color + '50' }}>
               <MaterialCommunityIcons name="shield-check" size={11} color={tc.color} />
               <Text className="text-xs font-semibold" style={{ color: tc.color }}>
-                {tc.label} Tier
+                {analytics.currentTier}
               </Text>
             </View>
           </View>
@@ -155,31 +179,36 @@ function TrustScoreCard() {
 }
 
 function StatsGrid() {
+  const { data: analytics, isPending } = useQuery({
+    queryFn: getDashboardAnalytics,
+    queryKey: ['dashboard-analytics'],
+  });
+
   const stats = [
     {
       label: 'Earned',
-      value: '₦1.48M',
+      value: formatNairaCompact(analytics?.totalEarnings || 0),
       icon: <Ionicons name="cash-outline" size={15} color="#20C997" />,
       color: '#20C997',
       delay: 160,
     },
     {
       label: 'Orders',
-      value: '142',
+      value: formatNairaCompact(analytics?.totalOrders || 0),
       icon: <Ionicons name="swap-vertical-outline" size={15} color="#4361EE" />,
       color: '#4361EE',
       delay: 220,
     },
     {
       label: 'Avg',
-      value: '₦10.4k',
+      value: formatNairaCompact(analytics?.averageMonthlyEarnings || 0),
       icon: <Ionicons name="trending-up-outline" size={15} color="#F0A500" />,
       color: '#F0A500',
       delay: 280,
     },
     {
       label: 'Disputes',
-      value: '0.7%',
+      value: analytics?.disputesCount || 0,
       icon: <Feather name="shield" size={15} color="#B4B2A9" />,
       color: '#B4B2A9',
       delay: 340,
@@ -245,14 +274,21 @@ const CHART_CFG_BASE = {
 };
 
 function EarningsChart() {
+  const { data: analytics } = useQuery({
+    queryFn: getDashboardAnalytics,
+    queryKey: ['dashboard-analytics'],
+  });
+
+  const weeklyEarnings = analytics?.weeklyEarnings || [];
+
   return (
     <Animated.View entering={FadeInDown.delay(300)} className="mb-5">
       <SectionHead title="Weekly earnings" action="₦ k" />
       <ChartCard>
         <BarChart
           data={{
-            labels: MOCK_WEEKLY_EARNINGS.map((d) => d.day),
-            datasets: [{ data: MOCK_WEEKLY_EARNINGS.map((d) => d.amount / 1000) }],
+            labels: weeklyEarnings.map((d) => d.day.slice(0, 3)),
+            datasets: [{ data: weeklyEarnings.map((d) => d.earnings / 1000) }],
           }}
           width={CHART_W - 24}
           height={155}
@@ -276,14 +312,44 @@ function EarningsChart() {
 }
 
 function ScoreChart() {
+  const { data: analytics } = useQuery({
+    queryFn: getDashboardAnalytics,
+    queryKey: ['dashboard-analytics'],
+  });
+
+  const scoreTrajectory = analytics?.scoreTrajectory || [];
+
+  const allMonths = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  const getScoreForMonth = (month: string) => {
+    const found = scoreTrajectory.find((s) => s.month.slice(0, 3) === month);
+    return found ? found.score : 0;
+  };
+
+  const months = allMonths.map((d) => d.slice(0, 3));
+  const scores = allMonths.map(getScoreForMonth);
+
   return (
     <Animated.View entering={FadeInDown.delay(380)} className="mb-5">
       <SectionHead title="Score trajectory" />
       <ChartCard>
         <LineChart
           data={{
-            labels: MOCK_SCORE_HISTORY.map((d) => d.date),
-            datasets: [{ data: MOCK_SCORE_HISTORY.map((d) => d.score) }],
+            labels: months,
+            datasets: [{ data: scores }],
           }}
           width={CHART_W - 16}
           height={155}
@@ -303,19 +369,26 @@ function ScoreChart() {
 }
 
 function RecentTxns({ onSeeAll }: { onSeeAll: () => void }) {
-  const STATUS_COLOR = { success: '#20C997', pending: '#F0A500', failed: '#E63946' } as const;
+  const STATUS_COLOR = { completed: '#20C997', pending: '#F0A500', failed: '#E63946' } as const;
   const recent = MOCK_TRANSACTIONS.slice(0, 4);
+
+  const { data: analytics, isPending } = useQuery({
+    queryFn: getDashboardAnalytics,
+    queryKey: ['dashboard-analytics'],
+  });
+
+  const recentOrders = analytics?.recentOrders || [];
 
   return (
     <Animated.View entering={FadeInDown.delay(460)} className="mb-5">
       <SectionHead title="Recent activity" action="See all" onAction={onSeeAll} />
       <View className="overflow-hidden rounded-3xl border border-canvas-border bg-canvas-surface">
-        {recent.map((txn, i) => {
-          const color = STATUS_COLOR[txn.status];
+        {recentOrders?.map((txn, i) => {
+          const color = STATUS_COLOR[txn.status?.toLowerCase() as keyof typeof STATUS_COLOR];
           return (
             <View
-              key={txn.id}
-              className={`flex-row items-center px-4 py-3.5 ${i < recent.length - 1 ? 'border-b border-canvas-border' : ''}`}>
+              key={txn.date}
+              className={`flex-row items-center px-4 py-3.5 ${i < recentOrders.length - 1 ? 'border-b border-canvas-border' : ''}`}>
               <View className="mr-3 h-9 w-9 items-center justify-center rounded-full border border-indigo-500/20 bg-indigo-900">
                 <Text className="text-sm font-semibold text-indigo-300">
                   {txn.buyerName.charAt(0)}

@@ -26,3 +26,29 @@ export enum BusinessVerificationTypes {
   TIN = 'TIN',
   OTHER = 'OTHER',
 }
+
+export const formatNairaCompact = (
+  amount: number,
+  options?: {
+    decimals?: number;
+    withSymbol?: boolean;
+  }
+): string => {
+  const { decimals = 1, withSymbol = true } = options || {};
+
+  const symbol = withSymbol ? '₦' : '';
+
+  if (Math.abs(amount) >= 1_000_000_000) {
+    return `${symbol}${(amount / 1_000_000_000).toFixed(decimals)}B`;
+  }
+
+  if (Math.abs(amount) >= 1_000_000) {
+    return `${symbol}${(amount / 1_000_000).toFixed(decimals)}M`;
+  }
+
+  if (Math.abs(amount) >= 1_000) {
+    return `${symbol}${(amount / 1_000).toFixed(decimals)}K`;
+  }
+
+  return `${symbol}${amount.toLocaleString()}`;
+};

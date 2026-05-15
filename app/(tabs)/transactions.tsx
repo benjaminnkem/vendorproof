@@ -195,7 +195,7 @@ export default function TransactionsScreen() {
       getTransactions({
         page: pageParam,
         limit: 10,
-        status: filter === 'all' ? undefined : filter.toUpperCase(),
+        ...(filter !== 'all' && { status: filter.toUpperCase() }),
       }),
     getNextPageParam: (lastPage) => {
       if (lastPage?.meta?.hasNextPage) {
