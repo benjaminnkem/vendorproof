@@ -1,15 +1,16 @@
-import useUser from '@/lib/hooks/use-user';
+import { useAuthStore } from '@/lib/store/auth.store';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 export default function OnboardingLayout() {
-  const { user } = useUser();
   const router = useRouter();
 
+  const { isAuthenticated } = useAuthStore();
+
   useEffect(() => {
-    if (user) router.replace('/(tabs)');
-  }, [user]);
+    if (isAuthenticated) router.replace('/(tabs)');
+  }, [isAuthenticated]);
 
   return (
     <>

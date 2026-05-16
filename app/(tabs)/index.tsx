@@ -82,7 +82,7 @@ function TrustScoreCard() {
 
   const { data: analytics, isPending } = useQuery({
     queryFn: getDashboardAnalytics,
-    queryKey: ['dashboard-analytics'],
+    queryKey: ['analytics', 'dashboard'],
   });
 
   if (isPending)
@@ -181,7 +181,7 @@ function TrustScoreCard() {
 function StatsGrid() {
   const { data: analytics, isPending } = useQuery({
     queryFn: getDashboardAnalytics,
-    queryKey: ['dashboard-analytics'],
+    queryKey: ['analytics', 'dashboard'],
   });
 
   const stats = [
@@ -194,7 +194,7 @@ function StatsGrid() {
     },
     {
       label: 'Orders',
-      value: formatNairaCompact(analytics?.totalOrders || 0),
+      value: analytics?.totalOrders,
       icon: <Ionicons name="swap-vertical-outline" size={15} color="#4361EE" />,
       color: '#4361EE',
       delay: 220,
@@ -276,7 +276,7 @@ const CHART_CFG_BASE = {
 function EarningsChart() {
   const { data: analytics } = useQuery({
     queryFn: getDashboardAnalytics,
-    queryKey: ['dashboard-analytics'],
+    queryKey: ['analytics', 'dashboard'],
   });
 
   const weeklyEarnings = analytics?.weeklyEarnings || [];
@@ -314,7 +314,7 @@ function EarningsChart() {
 function ScoreChart() {
   const { data: analytics } = useQuery({
     queryFn: getDashboardAnalytics,
-    queryKey: ['dashboard-analytics'],
+    queryKey: ['analytics', 'dashboard'],
   });
 
   const scoreTrajectory = analytics?.scoreTrajectory || [];
@@ -374,7 +374,7 @@ function RecentTxns({ onSeeAll }: { onSeeAll: () => void }) {
 
   const { data: analytics, isPending } = useQuery({
     queryFn: getDashboardAnalytics,
-    queryKey: ['dashboard-analytics'],
+    queryKey: ['analytics', 'dashboard'],
   });
 
   const recentOrders = analytics?.recentOrders || [];

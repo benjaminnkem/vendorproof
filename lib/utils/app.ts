@@ -1,3 +1,5 @@
+import * as Clipboard from 'expo-clipboard';
+
 export enum Tier {
   UNVERIFIED = 'UNVERIFIED',
   BRONZE = 'BRONZE',
@@ -51,4 +53,8 @@ export const formatNairaCompact = (
   }
 
   return `${symbol}${amount.toLocaleString()}`;
+};
+
+export const copyText = async (text: string) => {
+  await Clipboard.setStringAsync(text);
 };

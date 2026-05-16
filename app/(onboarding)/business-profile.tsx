@@ -1,9 +1,12 @@
 import { Button } from '@/components/onboarding/shared';
+import { storage } from '@/lib/config/storage';
 import { useRegisterBusinessProfile } from '@/lib/hooks/use-onboarding';
+import { payOnboarding } from '@/lib/services/onboarding-api';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -136,7 +139,6 @@ export default function BusinessProfileScreen() {
     data: { accessToken },
     updateData,
   } = useOnboardingStore();
-  const { setTokens } = useAuthStore();
 
   const pickImage = async (setUri: (uri: string | null) => void) => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -160,6 +162,12 @@ export default function BusinessProfileScreen() {
       setUri(compressed.uri);
     }
   };
+
+  const { mutateAsync: payOnboardingMutation, isPending: isPayOnboardingPending } = useMutation({
+    mutationFn: payOnboarding,
+  });
+
+  const { setTokens } = useAuthStore();
 
   const onSubmit = async (values: FormValues) => {
     updateData({
@@ -197,9 +205,30 @@ export default function BusinessProfileScreen() {
       } as any);
 
     const result = await updateBusinessProfile({ accessToken: accessToken!, payload: formData });
+
     updateData({ accessToken: result.accessToken });
-    setTokens(result.accessToken);
-    router.push('/(onboarding)/processing');
+
+    const newAccessToken = result.accessToken;
+
+    const payResult = await payOnboardingMutation({
+      accessToken: newAccessToken!,
+    });
+
+    if (payResult.message.toLowerCase().includes('already paid')) {
+      await storage.setTokens(newAccessToken!);
+      setTokens(newAccessToken!);
+      router.replace({ pathname: '/(tabs)' });
+      return;
+    }
+
+    const { checkoutUrl } = payResult.data;
+
+    router.replace({
+      pathname: '/(payment)/payment',
+      params: { uri: checkoutUrl, from: 'business-profile', accessToken: newAccessToken! },
+    });
+
+    // router.push('/(onboarding)/processing');
   };
 
   return (

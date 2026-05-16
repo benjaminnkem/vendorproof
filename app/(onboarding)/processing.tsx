@@ -1,7 +1,9 @@
 import { Button } from '@/components/onboarding/shared';
+import { storage } from '@/lib/config/storage';
+import { useAuthStore } from '@/lib/store/auth.store';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +14,15 @@ export default function ProcessingScreen() {
 
   const ringRotate = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const { accessToken } = useLocalSearchParams<{ accessToken: string }>();
+  const { setTokens } = useAuthStore();
+
+  const handleContinue = async () => {
+    await storage.setTokens(accessToken!);
+    setTokens(accessToken!);
+    router.replace('/(tabs)');
+  };
 
   useEffect(() => {
     setStep(4);
@@ -68,7 +79,7 @@ export default function ProcessingScreen() {
         <Button
           label="Go to Dashboard"
           variant="outline"
-          onPress={() => router.replace('/(tabs)')}
+          onPress={handleContinue}
           rightIcon={<AntDesign name="arrow-right" size={20} color="#A1A1AA" />}
         />
       </View>
