@@ -1,10 +1,13 @@
 import { storage } from '@/lib/config/storage';
 import { useSignIn, useVerifyOTP } from '@/lib/hooks/user-auth-mutations';
+import { payOnboarding } from '@/lib/services/onboarding-api';
 import { useAuthStore } from '@/lib/store/auth.store';
 import { useOnboardingStore } from '@/lib/store/onboarding.store';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -29,6 +32,8 @@ import Svg, { Circle } from 'react-native-svg';
 
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_SECONDS = 900;
+
+WebBrowser.maybeCompleteAuthSession();
 
 function OTPBox({
   digit,
@@ -197,11 +202,11 @@ export default function VerifyScreen() {
   }, []);
 
   const fullOtp = otp.join('');
-  useEffect(() => {
-    if (fullOtp.length === OTP_LENGTH) {
-      handleVerify(fullOtp);
-    }
-  }, [fullOtp]);
+  // useEffect(() => {
+  //   if (fullOtp.length === OTP_LENGTH) {
+  //     handleVerify(fullOtp);
+  //   }
+  // }, [fullOtp]);
 
   const handleDigit = (text: string, index: number) => {
     setHasError(false);
@@ -235,6 +240,12 @@ export default function VerifyScreen() {
     }
   };
 
+  const {
+    data: payOnboardingData,
+    mutateAsync: payOnboardingMutation,
+    isPending: isPayOnboardingPending,
+  } = useMutation({ mutationFn: payOnboarding });
+
   const handleVerify = useCallback(
     async (code: string) => {
       if (isPending) return;
@@ -266,15 +277,25 @@ export default function VerifyScreen() {
             });
             break;
           case 5:
-            router.replace({
-              pathname: '/(onboarding)/document',
-              params: { fromSignIn: 'true' },
+            const result = await payOnboardingMutation({
+              accessToken: data.accessToken,
             });
-            break;
-          case 6:
+
+            if (result.message.toLowerCase().includes('already paid')) {
+              await storage.setTokens(data.accessToken);
+              setTokens(data.accessToken);
+              router.replace({ pathname: '/(tabs)' });
+              return;
+            }
+
+            const { checkoutUrl } = result.data;
+
+            await storage.setTokens(data.accessToken);
+            setTokens(data.accessToken);
+
             router.replace({
-              pathname: '/(onboarding)/processing',
-              params: { fromSignIn: 'true' },
+              pathname: '/(payment)/payment',
+              params: { uri: checkoutUrl },
             });
             break;
           default:

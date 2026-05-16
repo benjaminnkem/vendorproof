@@ -1,3 +1,4 @@
+import { getAnalyticsActivity } from '@/lib/services/analytics-api';
 import { getTransactions, Transaction } from '@/lib/services/business-api';
 import {
   formatDate,
@@ -5,8 +6,9 @@ import {
   MOCK_TRANSACTIONS,
   MOCK_WEEKLY_EARNINGS,
 } from '@/lib/types/dashboard';
+import { formatNairaCompact } from '@/lib/utils/app';
 import { Ionicons } from '@expo/vector-icons';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -45,6 +47,11 @@ function SummaryStrip() {
   const success = MOCK_TRANSACTIONS.filter((t) => t.status === 'success');
   const total = success.reduce((s, t) => s + t.amount, 0);
 
+  const { data: analytics, isPending } = useQuery({
+    queryFn: getAnalyticsActivity,
+    queryKey: ['analytics', 'activity'],
+  });
+
   return (
     <Animated.View entering={FadeInDown.delay(80)} className="mb-4">
       <View className="rounded-3xl border border-canvas-border bg-canvas-surface p-4">
@@ -53,7 +60,11 @@ function SummaryStrip() {
         </Text>
         <View className="flex-row gap-0">
           {[
-            { label: 'Volume', value: formatNaira(total), color: '#fff' },
+            {
+              label: 'Volume',
+              value: formatNairaCompact(analytics?.totalVolume || 0),
+              color: '#fff',
+            },
             { label: 'Completed', value: `${success.length}`, color: '#20C997' },
             {
               label: 'Pending',
@@ -89,7 +100,7 @@ function ActivityChart() {
         <BarChart
           data={{
             labels: MOCK_WEEKLY_EARNINGS.map((d) => d.day),
-            datasets: [{ data: MOCK_WEEKLY_EARNINGS.map((d) => d.amount / 1000) }],
+            datasets: [{ data: MOCK_WEEKLY_EARNINGS.map((d) => d.earnings / 1000) }],
           }}
           width={CHART_W - 20}
           height={140}
