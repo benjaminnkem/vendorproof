@@ -1,5 +1,7 @@
+import { showToast } from '@/lib/config/toast';
 import useUser from '@/lib/hooks/use-user';
 import { MOCK_VENDOR, TIER_CONFIG } from '@/lib/types/dashboard';
+import { copyText } from '@/lib/utils/app';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { useEffect } from 'react';
@@ -140,6 +142,8 @@ function QRCard() {
   const { user } = useUser();
   const business = user?.business;
 
+  const qrLink = `${process.env.EXPO_PUBLIC_FRONTEND_URL}${business?.paymentLink}`;
+
   return (
     <Animated.View entering={FadeInDown.delay(300)} className="mb-4">
       <View className="rounded-3xl border border-canvas-border bg-canvas-surface p-5">
@@ -150,17 +154,12 @@ function QRCard() {
         <View className="items-center">
           {/* QR wrapper */}
           <View className="mb-4 rounded-2xl bg-white p-4">
-            <QRCode
-              value={v.squadPaymentLink}
-              size={width * 0.48}
-              color="#080B12"
-              backgroundColor="white"
-            />
+            <QRCode value={qrLink} size={width * 0.48} color="#080B12" backgroundColor="white" />
           </View>
 
           <Text className="mb-1 text-sm font-medium text-white">{v.businessName}</Text>
           <Text className="text-center text-xs text-canvas-muted" numberOfLines={1}>
-            {v.squadPaymentLink}
+            {qrLink}
           </Text>
         </View>
       </View>
@@ -172,12 +171,18 @@ function ShareActions() {
   const { user } = useUser();
   const business = user?.business;
   const tc = TIER_CONFIG[business?.tier?.name.toLowerCase() as keyof typeof TIER_CONFIG];
+  const qrLink = `${process.env.EXPO_PUBLIC_FRONTEND_URL}${business?.paymentLink}`;
 
   const handleShare = async () => {
     await Share.share({
-      message: `I'm a verified vendor on VendorProof!\n\nTrust Score: ${business?.trustScore}/100 · ${tc.label} Tier\n\nPay me securely: ${business?.paymentLink}`,
+      message: `I'm a verified vendor on VendorProof!\n\nTrust Score: ${business?.trustScore}/100 · ${tc.label} Tier\n\nPay me securely: ${qrLink}`,
       title: `${business?.name} — VendorProof Badge`,
     });
+  };
+
+  const copyLink = async () => {
+    await copyText(qrLink);
+    showToast.success('Link copied to clipboard');
   };
 
   const actions = [
@@ -193,14 +198,17 @@ function ShareActions() {
       label: 'Copy link',
       bg: 'bg-teal-900/60',
       border: 'border-teal-700/40',
-      onPress: () => {},
+      onPress: copyLink,
     },
     {
       icon: <Feather name="download" size={20} color="#F0A500" />,
       label: 'Save QR',
       bg: 'bg-gold-900/60',
       border: 'border-gold-700/40',
-      onPress: () => {},
+      onPress: async () => {
+        const qrLink = `${process.env.EXPO_PUBLIC_FRONTEND_URL}${business?.paymentLink}`;
+        showToast.success('QR code saved to clipboard');
+      },
     },
   ];
 
@@ -221,6 +229,9 @@ function ShareActions() {
 
 function PaymentLinkCard() {
   const v = MOCK_VENDOR;
+  const { user } = useUser();
+  const business = user?.business;
+  const qrLink = `${process.env.EXPO_PUBLIC_FRONTEND_URL}${business?.paymentLink}`;
 
   return (
     <Animated.View entering={FadeInDown.delay(480)} className="mb-5">
@@ -232,7 +243,7 @@ function PaymentLinkCard() {
           <View className="flex-1">
             <Text className="mb-0.5 text-sm font-semibold text-white">Squad payment link</Text>
             <Text className="text-xs text-canvas-muted" numberOfLines={1}>
-              {v.squadPaymentLink}
+              {qrLink}
             </Text>
           </View>
           <View className="flex-row items-center gap-1.5 rounded-full border border-teal-700/40 bg-teal-900/60 px-2.5 py-1">

@@ -16,6 +16,13 @@ export const verifyPayment = async (ref: string) => {
   return data.data;
 };
 
+export const verifyOnboardingFeePayment = async (ref: string) => {
+  const { data } = await publicApi.get<ApiResponse<VerifyPayment>>(
+    `/pay/onboarding-fee/verify/${ref}`
+  );
+  return data.data;
+};
+
 export interface GetRating {
   paymentId: number;
   buyerName: string;

@@ -20,6 +20,7 @@ interface AuthState {
   setTokens: (access: string, refresh?: string) => void;
   setVendor: (vendor: AuthVendor) => void;
   setBiometricEnabled: (val: boolean) => void;
+  setIsAuthenticated: (val: boolean) => void;
   signOut: () => void;
 }
 
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ accessToken, refreshToken, isAuthenticated: true }),
   setVendor: (vendor) => set({ vendor }),
   setBiometricEnabled: (biometricEnabled) => set({ biometricEnabled }),
+  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
   signOut: () =>
     set({ accessToken: null, refreshToken: null, vendor: null, isAuthenticated: false }),
 }));

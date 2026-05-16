@@ -36,3 +36,26 @@ export const getDashboardAnalytics = async () => {
   const { data } = await authApi.get<ApiResponse<DashboardSummary>>('/analytics/me/dashboard');
   return data.data;
 };
+
+export interface AnalyticsActivity {
+  totalTransactions: number;
+  transactions: {
+    buyerName: string;
+    amount: number;
+    date: string;
+    status: string;
+  }[];
+  dailyVolume: {
+    day: string;
+    volume: number;
+  }[];
+  totalVolume: number;
+  completedTransactions: number;
+  pendingTransactions: number;
+  failedTransactions: number;
+}
+
+export const getAnalyticsActivity = async () => {
+  const { data } = await authApi.get<ApiResponse<AnalyticsActivity>>('/analytics/me/activity');
+  return data.data;
+};

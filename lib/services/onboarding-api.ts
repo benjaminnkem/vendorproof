@@ -119,6 +119,26 @@ export const registerBusinessProfile = async ({
   return data.data;
 };
 
+interface PayOnboardingResponse {
+  checkoutUrl: string;
+  transactionReference: string;
+}
+
+export const payOnboarding = async ({
+  accessToken,
+  redirectUrl,
+}: {
+  accessToken: string;
+  redirectUrl?: string;
+}) => {
+  const { data } = await publicApi.post<ApiResponse<PayOnboardingResponse>>(
+    '/auth/signup/step-5',
+    { redirectUrl },
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  return data;
+};
+
 export async function verifySelfie(payload: VerifySelfiePayload): Promise<VerifySelfieResponse> {
   await SIMULATED_DELAY(2000);
 

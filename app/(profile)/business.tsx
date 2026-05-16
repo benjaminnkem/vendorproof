@@ -310,7 +310,6 @@ function ShowcaseSection() {
 function ViewOnWebButton() {
   const { user } = useUser();
   const business = user?.business;
-  console.log(JSON.stringify(business, null, 2));
   const slug = business?.slug;
 
   const handlePress = async () => {
